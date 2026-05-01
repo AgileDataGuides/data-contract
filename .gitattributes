@@ -1,0 +1,22 @@
+# GitHub Linguist overrides
+#
+# This is a SvelteKit project. Files ending in `.svelte.ts` are Svelte 5
+# runes stores (using $state / $derived / $effect) — conceptually Svelte,
+# not generic TypeScript. Re-classify them so the language stats reflect
+# the project's nature.
+*.svelte.ts linguist-language=Svelte
+
+# Bundled from the workspace shared package by publish-app.sh — not
+# user-written code, doesn't reflect this app's character.
+app/src/lib/cp-shared.ts linguist-vendored=true
+app/src/lib/shared-data/** linguist-vendored=true
+app/src/lib/languages/** linguist-vendored=true
+
+# Legacy path from older publishes (kept here so a re-publish over an
+# existing checkout that still has the old file in git history doesn't
+# falsely classify it). Safe to remove once no public repo retains it.
+app/src/lib/types/shared.ts linguist-vendored=true
+
+# SvelteKit-generated artefacts.
+.svelte-kit/** linguist-generated=true
+app/.svelte-kit/** linguist-generated=true

@@ -34,7 +34,7 @@ The demo includes three example contracts modelling the **Stripe Customers**, **
 
 ## Install and Run
 
-Double-click `start-data-contract.command` (macOS) or run `./start-data-contract.sh` from the terminal.
+Run `./start-data-contract.sh` from the terminal.
 
 The app starts at [http://localhost:5119](http://localhost:5119).
 
