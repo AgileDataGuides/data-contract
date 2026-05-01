@@ -12,7 +12,7 @@
  * and registering it in index.ts. No core schema changes required.
  */
 
-import type { ContextNode, ContextLink } from '../types.js';
+import type { ContextNode, ContextLink } from '$lib/cp-shared';
 
 export interface GraphData {
 	nodes: ContextNode[];

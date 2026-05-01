@@ -23,8 +23,8 @@
  */
 
 import type { GraphData, Language, ValidationResult } from './types.js';
-import type { ContextNode, ContextLink } from '../types.js';
-import { getNodeLabels } from '../types.js';
+import type { ContextNode, ContextLink } from '$lib/cp-shared';
+import { getNodeLabels } from '$lib/cp-shared';
 
 const OMS_VERSION = '1.11.0';
 const OMS_NAMESPACE = 'http://open-metadata.org/ontology#';

@@ -7,8 +7,8 @@
 
 import YAML from 'yaml';
 import type { Language, GraphData, ValidationResult } from './types.js';
-import type { ContextNode, ContextLink } from '../types.js';
-import { getNodeLabels } from '../types.js';
+import type { ContextNode, ContextLink } from '$lib/cp-shared';
+import { getNodeLabels } from '$lib/cp-shared';
 
 // --- Label/relationship/property maps --------------------------------------
 
