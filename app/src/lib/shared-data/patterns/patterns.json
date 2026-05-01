@@ -1,0 +1,32 @@
+{
+  "version": "1.1",
+  "patterns": [
+    { "id": "alias", "name": "Alias", "order": 1, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "layer-governance-policy", "name": "Layer Governance Policy", "order": 2, "multiSelect": false, "appliesTo": ["canvas_checklist"] },
+    { "id": "contains-pii", "name": "Contains PII", "order": 3, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "concept-modeling-patterns", "name": "Concept Modeling Patterns", "order": 4, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "data-persistence", "name": "Data Persistence", "order": 5, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "data-storage-technology", "name": "Data Storage Technology", "order": 6, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "data-storage-format", "name": "Data Storage Format", "order": 7, "multiSelect": true, "appliesTo": ["canvas_checklist", "canvas_data_contract"] },
+    { "id": "default-retention-period", "name": "Default Retention Period", "order": 8, "multiSelect": true, "appliesTo": ["canvas_checklist", "canvas_data_contract"] },
+    { "id": "physical-data-structure", "name": "Physical Data Structure", "order": 9, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "source-driven", "name": "Source Driven", "order": 10, "multiSelect": false, "appliesTo": ["canvas_checklist"] },
+    { "id": "integrates-core-business-concepts", "name": "Integrates Core Business Concepts", "order": 11, "multiSelect": false, "appliesTo": ["canvas_checklist"] },
+    { "id": "data-processing", "name": "Data Processing", "order": 12, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "change-detection", "name": "Change Detection", "order": 13, "multiSelect": true, "appliesTo": ["canvas_checklist", "canvas_data_contract"] },
+    { "id": "destructive-rebuilds", "name": "Destructive Rebuilds", "order": 14, "multiSelect": false, "appliesTo": ["canvas_checklist"] },
+    { "id": "rename-fields", "name": "Rename Fields", "order": 15, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "data-value-updates", "name": "Data Value Updates", "order": 16, "multiSelect": false, "appliesTo": ["canvas_checklist"] },
+    { "id": "derived-data", "name": "Derived Data", "order": 17, "multiSelect": false, "appliesTo": ["canvas_checklist"] },
+    { "id": "calculate-metrics", "name": "Calculate Metrics", "order": 18, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "auditable", "name": "Auditable", "order": 19, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "reconciliation-pattern", "name": "Reconciliation Pattern", "order": 20, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "data-contract-alerts", "name": "Data Contract Alerts", "order": 21, "multiSelect": false, "appliesTo": ["canvas_checklist"] },
+    { "id": "data-quality-alerts", "name": "Data Quality Alerts", "order": 22, "multiSelect": false, "appliesTo": ["canvas_checklist"] },
+    { "id": "persona-access-read", "name": "Persona Access Read", "order": 23, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "persona-access-write", "name": "Persona Access Write", "order": 24, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "last-mile-tools", "name": "Last Mile Tools", "order": 25, "multiSelect": true, "appliesTo": ["canvas_checklist"] },
+    { "id": "history-window", "name": "History Window", "order": 26, "multiSelect": false, "appliesTo": ["canvas_checklist", "canvas_data_contract"] },
+    { "id": "status", "name": "Status", "order": 27, "multiSelect": false, "appliesTo": ["canvas_checklist", "canvas_data_contract"] }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "alias": [
+    "Atomic", "Base", "BI Semantic Layer", "Bronze", "Buffet", "Cleansed", "Coherent",
+    "Collated", "Conformed", "Copper", "Curated", "Data According to Business",
+    "Data According to Consumption", "Data According to Source System", "Data Marts",
+    "Egress", "Enriched", "Events", "Formatted", "Gold", "Ingest", "Integrated",
+    "Intermediate", "Kitchen", "Landing", "Loading Dock", "Marts", "Metrics Layer",
+    "Persistent Staging Area", "Platinum", "Presentation", "Raw", "Refined",
+    "Restaurant", "Retail", "Sandbox", "Serving", "Silver", "Snapshots", "Staging",
+    "Stateful", "Storeroom", "Tin", "Trusted"
+  ],
+  "layer-governance-policy": [
+    "Use of Layer Advised",
+    "Use of Layer Enforced",
+    "Use of Layer Optional"
+  ],
+  "contains-pii": [
+    "Yes", "No", "Masked"
+  ],
+  "concept-modeling-patterns": [
+    "Activity Schema", "AgileData", "Anchor", "BEAM", "Data Vault", "Dimensional",
+    "ELM", "Focal", "Hook", "Independent / Native Objects", "One Attribute Set",
+    "One Big Table", "Third Normal Form (3NF)", "Unified Star Schema"
+  ],
+  "data-persistence": [
+    "Persisted", "Transient", "Virtualised", "In-Memory", "Other"
+  ],
+  "data-storage-technology": [
+    "AWS Redshift", "AWS S3", "Files", "Google BI Engine", "Google BigQuery",
+    "Google Cloud Storage", "Microsoft Azure Blob Storage", "Microsoft Azure Data Lake",
+    "Microsoft Power BI", "Microsoft SQL Server", "Microsoft SQL Server Analysis Services",
+    "MySql", "Other", "Postgres", "Snowflake"
+  ],
+  "data-storage-format": [
+    "CSV", "Delta", "Hudi", "Hyper", "Iceberg", "JSON", "Native", "Parquet", "Vertipaq"
+  ],
+  "default-retention-period": [
+    "0 (Transient)", "24 hours", "7 days", "30 days", "90 days (3 months)",
+    "180 days (6 months)", "1 year", "3 years", "7 years", "Indefinite (unless redacted)"
+  ],
+  "physical-data-structure": [
+    "Activity Schema", "Anchor", "Data Vault", "Dimensional", "Focal", "Hook",
+    "Independent Objects", "Matches Source", "One Attribute Set", "One Big Tables",
+    "Other", "Summary Tables", "Third Normal Form (3NF)", "Unified Star Schema"
+  ],
+  "source-driven": [
+    "Yes", "No"
+  ],
+  "integrates-core-business-concepts": [
+    "Yes", "No", "Optional"
+  ],
+  "data-processing": [
+    "Batch", "Micro Batch", "Streaming"
+  ],
+  "change-detection": [
+    "Change Data Capture (Database Logs)", "Change Data Capture (Other)",
+    "Snapshots", "Streaming Inserts", "Other"
+  ],
+  "destructive-rebuilds": [
+    "Allowed", "Not Allowed", "Allowed as an Exception"
+  ],
+  "rename-fields": [
+    "Any Reason", "Driven by Business Context", "Driven by Consumption",
+    "Driven by Standardisation", "Driven by Storage", "No"
+  ],
+  "data-value-updates": [
+    "Allowed", "Not Allowed", "Parsing Fields Only"
+  ],
+  "derived-data": [
+    "Yes", "No"
+  ],
+  "calculate-metrics": [
+    "No", "Facts", "Measures", "Metrics"
+  ],
+  "auditable": [
+    "Yes", "No", "Reconciles with Source", "Reconciles with Previous Layer"
+  ],
+  "reconciliation-pattern": [
+    "CheckSum", "Compare Hash Records", "Compare Row Count",
+    "Full Data Compare", "Other"
+  ],
+  "data-contract-alerts": [
+    "Yes", "No"
+  ],
+  "data-quality-alerts": [
+    "Yes", "No"
+  ],
+  "persona-access-read": [
+    "Analyst", "Analytics Engineer", "Data Engineer", "Data Scientist",
+    "External", "Information Consumer", "System Account"
+  ],
+  "persona-access-write": [
+    "Analyst", "Analytics Engineer", "Data Engineer", "Data Scientist",
+    "External", "Information Consumer", "System Account"
+  ],
+  "last-mile-tools": [
+    "AgileData", "DataBricks", "GoodData", "Google BigQuery Console",
+    "Google Looker", "Google Looker Studio", "Google Sheets", "Microsoft Excel",
+    "Microsoft PowerBI", "Mode", "Streamsets", "Tableau"
+  ],
+  "history-window": [
+    "All history", "1 day", "3 days", "7 days", "30 days", "90 days", "1 year"
+  ],
+  "status": [
+    "Ideation", "Design", "Development", "Testing", "Production", "Deprecated", "Retired"
+  ]
+}

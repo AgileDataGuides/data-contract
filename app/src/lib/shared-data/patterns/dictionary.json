@@ -1,0 +1,288 @@
+{
+  "patterns": {
+    "alias": "The shorthand or alternate name commonly used to refer to this layer (e.g. \"Silver\" or \"Designed\"). Helps map your naming to other names or architecture languages.",
+    "layer-governance-policy": "Is the use of this Data Layer Enforced and must be used, is it Advised and should it be used or is the use of the layer Optional.",
+    "contains-pii": "Indicates whether this layer includes Personally Identifiable Information and may require additional governance, security, and privacy controls.",
+    "concept-modeling-patterns": "The Conceptual modeling patterns used to design the data in this layer.",
+    "data-persistence": "Whether data in this layer is temporary, cached, or permanently stored.",
+    "data-storage-technology": "The underlying platform or technology used to store data in this layer.",
+    "data-storage-format": "The technical file or table format used to persist data.",
+    "default-retention-period": "The standard timeframe data in this layer is kept before being archived or deleted.",
+    "physical-data-structure": "The Physical modeling patterns used to store data in this layer.",
+    "source-driven": "Whether the layer is designed primarily by the structure of the source system, rather than business concepts / business models.",
+    "integrates-core-business-concepts": "Whether data in this layer is aligned to and integrates the organisation's core business concepts (customers, products, orders, etc.).",
+    "data-processing": "The cadence and pattern by which data is processed, transformed and made available (batch, micro-batch, streaming, real-time).",
+    "change-detection": "The Patterns used to identify and process changes in the data.",
+    "destructive-rebuilds": "Are Destructive Rebuilds of the data allowed in this layer.",
+    "rename-fields": "Are Fields allowed to be renamed differently to the Fields in the previous layer and if so for what reason.",
+    "data-value-updates": "Can data values in this layer be UPDATED in place, or data is treated as immutable and only INSERTS are allowed.",
+    "derived-data": "Does this layer contain NEW DATA ELEMENTS created through transformations, derivations, or enrichments, or does it only hold data from the previous layer.",
+    "calculate-metrics": "Are business metrics calculated and stored in this layer.",
+    "auditable": "Can the layer be audited and reconciled with another layer or the system of capture.",
+    "reconciliation-pattern": "What Data Engineering Patterns are used to reconcile the data in this layer.",
+    "data-contract-alerts": "Are notifications triggered when incoming data violates agreed-upon data contracts.",
+    "data-quality-alerts": "Are notifications triggered when incoming data violates defined data-quality rules.",
+    "persona-access-read": "Which Personas have permission to READ the data in this layer.",
+    "persona-access-write": "Which Personas have permission to WRITE the data in this layer.",
+    "last-mile-tools": "What Last Mile tools are used to access the data in the layers.",
+    "history-window": "The timeframe of data each delivery / table / file is expected to cover — either full history or a rolling window (e.g. 7 days, 90 days, 1 year).",
+    "status": "Lifecycle stage of the data contract / artefact. Aligned with the OpenMetadata Standards 7-stage lifecycle: ideation → design → development → testing → production → deprecated → retired."
+  },
+  "values": {
+    "alias": {
+      "Atomic": "Data stored at the most granular level, often unaggregated and unmodified. Ideal for reconstructing events or applying different transformations later.",
+      "Base": "A foundational layer where ingested data is lightly processed but still closely mirrors the source. Often used as a starting point for downstream pipelines.",
+      "BI Semantic Layer": "TBD",
+      "Bronze": "TBD",
+      "Buffet": "TBD",
+      "Cleansed": "TBD",
+      "Coherent": "TBD",
+      "Collated": "TBD",
+      "Conformed": "TBD",
+      "Copper": "TBD",
+      "Curated": "TBD",
+      "Data According to Business": "TBD",
+      "Data According to Consumption": "TBD",
+      "Data According to Source System": "TBD",
+      "Data Marts": "TBD",
+      "Egress": "TBD",
+      "Enriched": "TBD",
+      "Events": "TBD",
+      "Formatted": "TBD",
+      "Gold": "TBD",
+      "Ingest": "TBD",
+      "Integrated": "Data that has been joined across systems and aligned on shared keys or entities. Often the equivalent of the \"Design\" layer.",
+      "Intermediate": "A temporary or working layer used to support transformation steps between source and target layers.",
+      "Kitchen": "A metaphorical layer name based on a Restaurant. An internal, messy layer where data is transformed, cooked, and prepared before being served. Not suitable for consumption. Often the equivalent to the \"Design\" layer.",
+      "Landing": "Where data lands immediately after data collection/ingestion, typically before any processing or transformation is applied.",
+      "Loading Dock": "A metaphorical layer name based on a Restaurant or Shop. Similar to Landing, temporarily holding raw data before loading into a layer where data is persisted. Often the equivalent to the \"Landing\" layer.",
+      "Marts": "An alias for \"Data Marts\", subject-specific datasets designed for reporting and analysis (e.g. Sales Mart, Finance Mart). Usually derived and summarised. Often the equivalent to the \"Consume\" layer.",
+      "Metrics Layer": "A layer where key metrics and KPIs are centrally defined and calculated. Often used in semantic or headless BI tools. Often the equivalent of the \"Consume\" layer.",
+      "Persistent Staging Area": "A layer where raw data is staged and stored persistently (not just temporarily), often for audit or recovery purposes. Often the equivalent of the \"Consume\" layer.",
+      "Platinum": "An extended metaphor beyond Gold, implies an even higher level of trust, quality, or certification. Often the equivalent of the \"Consume\" layer.",
+      "Presentation": "A final layer optimised for consumption. Often includes flattening, aliasing, and aggregation for tools like dashboards or APIs. Often the equivalent of the \"Consume\" layer.",
+      "Raw": "Untouched, untransformed data as landed from source systems. Typically include source schema and original naming. Often the equivalent of the \"History\" layer.",
+      "Refined": "Data that's been cleaned, transformed, and aligned, one step before being trusted or curated. Often the equivalent of the \"Consume\" layer.",
+      "Restaurant": "A metaphorical layer name based on a Restaurant, representing curated, served data, ready for users to \"consume\" without knowing what happened in the kitchen. Often the equivalent of the \"Consume\" layer.",
+      "Retail": "A metaphorical layer name based on a Shop, representing curated, served data, ready for users to \"consume\" without knowing what happened in the warehouse, factory or storeroom. Often the equivalent of the \"Consume\" layer.",
+      "Sandbox": "A safe, isolated space where users can experiment with data without affecting production layers.",
+      "Serving": "A layer optimised for low-latency queries, API responses, or high-performance dashboarding. Often the equivalent of the \"Consume\" layer.",
+      "Silver": "Refined data that has been transformed and cleaned but may not yet be fully trusted or reconciled. Sits between Bronze and Gold. Often the equivalent of the \"Design\" layer.",
+      "Snapshots": "Point-in-time capture of data, typically aggregated data. Often the equivalent of the \"Consume\" layer.",
+      "Staging": "A temporary layer where data is held during data collection processing. Often the equivalent of the \"Landing\" layer.",
+      "Stateful": "Indicates that this layer maintains historical changes or data state over time, not just the latest version. Often the equivalent of the \"History\" layer.",
+      "Storeroom": "A place where data is stored but not necessarily cleaned or curated. Might be archived or infrequently used. Often the equivalent of the \"History\" layer.",
+      "Tin": "Sometimes used as a lightweight or experimental layer, lower trust or temporary data not ready for broader use.",
+      "Trusted": "Data that has been validated, reconciled, and approved for widespread business use. Often the equivalent of the \"Consume\" layer."
+    },
+    "layer-governance-policy": {
+      "Use of Layer Advised": "Teams are ADVISED to move data through this layer, but it's not enforced. There's room for exceptions, especially in edge cases or innovation work.",
+      "Use of Layer Enforced": "Use of this layer is ENFORCED. The layer's purpose, structure, and use are mandated. Deviation is not permitted without formal approval.",
+      "Use of Layer Optional": "The layer is available for use, but entirely OPTIONAL. Teams can choose whether or not to use it depending on their specific needs. Often applies to experimental or transitional layers."
+    },
+    "contains-pii": {
+      "Yes": "YES this layer holds PII Data.",
+      "No": "NO this layer never holds PII Data.",
+      "Masked": "This layer holds PII data, but it must be MASKED."
+    },
+    "concept-modeling-patterns": {
+      "Activity Schema": "Data is conceptually designed based on the Activity Schema modeling pattern.",
+      "AgileData": "Data is conceptually designed based on the AgileData modeling pattern.",
+      "Anchor": "Data is conceptually designed based on the Anchor modeling pattern.",
+      "BEAM": "Data is conceptually designed based on the BEAM modeling pattern.",
+      "Data Vault": "Data is conceptually designed based on the Data Vault modeling pattern.",
+      "Dimensional": "Data is conceptually designed based on the Dimensional modeling pattern.",
+      "ELM": "Data is conceptually designed based on the ELM modeling pattern.",
+      "Focal": "Data is conceptually designed based on the Focal modeling pattern.",
+      "Hook": "Data is conceptually designed based on the Hook modeling pattern.",
+      "Independent / Native Objects": "Data is conceptually designed based on the Independent / Native Objects modeling pattern.",
+      "One Attribute Set": "Data is conceptually designed based on the One Attribute Set modeling pattern.",
+      "One Big Table": "Data is conceptually designed based on the One Big Table modeling pattern.",
+      "Third Normal Form (3NF)": "Data is conceptually designed based on the Third Normal Form (3NF) modeling pattern.",
+      "Unified Star Schema": "Data is conceptually designed based on the Unified Star Schema modeling pattern."
+    },
+    "data-persistence": {
+      "Persisted": "Data is PERSISTED in this layer.",
+      "Transient": "Data is TRANSIENT, it is stored temporarily and deleted straight after it has been used.",
+      "Virtualised": "Data is VIRTUALISED and never stored.",
+      "In-Memory": "Data is stored IN-MEMORY but is not persistently stored in physical storage.",
+      "Other": "Data is persisted in ANOTHER way."
+    },
+    "data-storage-technology": {
+      "AWS Redshift": "Data is stored in AWS Redshift.",
+      "AWS S3": "Data is stored in AWS S3.",
+      "Files": "Data is stored in Files.",
+      "Google BI Engine": "Data is stored in Google BI Engine.",
+      "Google BigQuery": "Data is stored in Google BigQuery.",
+      "Google Cloud Storage": "Data is stored in Google Cloud Storage.",
+      "Microsoft Azure Blob Storage": "Data is stored in Microsoft Azure Blob Storage.",
+      "Microsoft Azure Data Lake": "Data is stored in Microsoft Azure Data Lake.",
+      "Microsoft Power BI": "Data is stored in Microsoft Power BI.",
+      "Microsoft SQL Server": "Data is stored in Microsoft SQL Server.",
+      "Microsoft SQL Server Analysis Services": "Data is stored in Microsoft SQL Server Analysis Services.",
+      "MySql": "Data is stored in MySql.",
+      "Other": "Data is stored in Other.",
+      "Postgres": "Data is stored in Postgres.",
+      "Snowflake": "Data is stored in Snowflake."
+    },
+    "data-storage-format": {
+      "CSV": "Data is stored in CSV format.",
+      "Delta": "Data is stored in Delta format.",
+      "Hudi": "Data is stored in Hudi format.",
+      "Hyper": "Data is stored in Hyper format.",
+      "Iceberg": "Data is stored in Iceberg format.",
+      "JSON": "Data is stored in JSON format.",
+      "Native": "Data is stored in Native format.",
+      "Parquet": "Data is stored in Parquet format.",
+      "Vertipaq": "Data is stored in Vertipaq format."
+    },
+    "default-retention-period": {
+      "0 (Transient)": "0 - Transient or volatile logs, temporary caches, ephemeral processing data.",
+      "24 hours": "24 Hours - Transient or volatile logs, temporary caches, ephemeral processing data.",
+      "7 days": "7 Days - Short-term logs, debugging data, or staging data.",
+      "30 days": "30 Days - Session data, audit logs, error reports, temporary backups.",
+      "90 days (3 months)": "90 Days - Usage analytics, system monitoring data, support tickets.",
+      "180 days (6 months)": "180 Days - Marketing attribution data, subscription trial histories.",
+      "1 year": "1 Year - Transaction logs, system access records, non-identifiable event histories.",
+      "3 years": "3 Years - Financial records, tax-related data, contracts, customer engagement history.",
+      "7 years": "7 Years - Legal compliance (e.g. for financial services, healthcare, government).",
+      "Indefinite (unless redacted)": "Indefinite - Typically for critical records, historical archives, or unless a deletion policy applies."
+    },
+    "physical-data-structure": {
+      "Activity Schema": "Data is physically designed based on the Activity Schema modeling pattern.",
+      "Anchor": "Data is physically designed based on the Anchor modeling pattern.",
+      "Data Vault": "Data is physically designed based on the Data Vault modeling pattern.",
+      "Dimensional": "Data is physically designed based on the Dimensional modeling pattern.",
+      "Focal": "Data is physically designed based on the Focal modeling pattern.",
+      "Hook": "Data is physically designed based on the Hook modeling pattern.",
+      "Independent Objects": "Data is physically designed based on the Independent Objects modeling pattern.",
+      "Matches Source": "Data is physically designed based on the Matches Source modeling pattern.",
+      "One Attribute Set": "Data is physically designed based on the One Attribute Set modeling pattern.",
+      "One Big Tables": "Data is physically designed based on the One Big Tables modeling pattern.",
+      "Other": "Data is physically designed based on the Other modeling pattern.",
+      "Summary Tables": "Data is physically designed based on the Summary Tables modeling pattern.",
+      "Third Normal Form (3NF)": "Data is physically designed based on the Third Normal Form (3NF) modeling pattern.",
+      "Unified Star Schema": "Data is physically designed based on the Unified Star Schema modeling pattern."
+    },
+    "source-driven": {
+      "Yes": "The data IS designed based on the source system data model.",
+      "No": "The data IS NOT designed based on the source system data model."
+    },
+    "integrates-core-business-concepts": {
+      "Yes": "The layer DOES integrate data based on Core Business Concepts.",
+      "No": "The layer does NOT integrate data based on Core Business Concepts.",
+      "Optional": "Integration of data based on Core Business Concepts is OPTIONAL."
+    },
+    "data-processing": {
+      "Batch": "Data is collected over a period of time and processed in large BATCHES at scheduled intervals.",
+      "Micro Batch": "Data is processed in SMALL, frequent BATCHES at short intervals.",
+      "Streaming": "Data is processed CONTINUOUSLY as it arrives."
+    },
+    "change-detection": {
+      "Change Data Capture (Database Logs)": "Changes are detected by reading the Inserts, Updates and Deletes in the DATABASE LOGS.",
+      "Change Data Capture (Other)": "Another Change Detection Pattern is used.",
+      "Snapshots": "Changes are detected by comparing two SNAPSHOTS of the data and determining the differences.",
+      "Streaming Inserts": "Changes are STREAMED to the platform by another system.",
+      "Other": "Other."
+    },
+    "destructive-rebuilds": {
+      "Allowed": "Destructive rebuild of data in this layer is ALLOWED.",
+      "Not Allowed": "Destructive rebuild of data in this layer is NOT Allowed.",
+      "Allowed as an Exception": "Destructive rebuild of data in this layer is ALLOWED as an EXCEPTION."
+    },
+    "rename-fields": {
+      "Any Reason": "Fields can be Renamed for ANY REASON.",
+      "Driven by Business Context": "Fields can be Renamed to align with BUSINESS CONTEXT.",
+      "Driven by Consumption": "Fields can be Renamed to make it easier for last mile CONSUMPTION tools.",
+      "Driven by Standardisation": "Fields can be Renamed to align with ORGANISATIONAL NAMING POLICIES.",
+      "Driven by Storage": "Fields can be Renamed to meet the requirements of the STORAGE TECHNOLOGY.",
+      "No": "Fields can NOT be Renamed."
+    },
+    "data-value-updates": {
+      "Allowed": "Updates of data in this layer is ALLOWED.",
+      "Not Allowed": "Updates of data in this layer is NOT ALLOWED.",
+      "Parsing Fields Only": "Updates of data in this layer is ONLY ALLOWED when PARSING THE FIELDS value into multiple separate fields."
+    },
+    "derived-data": {
+      "Yes": "Data CAN be Derived in this layer.",
+      "No": "Data CAN NOT be Derived in this layer."
+    },
+    "calculate-metrics": {
+      "No": "Business Metrics are NOT calculated in this layer.",
+      "Facts": "Facts ARE calculated in this layer.",
+      "Measures": "Measures ARE calculated in this layer.",
+      "Metrics": "Metrics ARE calculated in this layer."
+    },
+    "auditable": {
+      "Yes": "YES the Layer is Auditable.",
+      "No": "NO the Layer is NOT Auditable.",
+      "Reconciles with Source": "This layer can be reconciled to the SYSTEM OF CAPTURE.",
+      "Reconciles with Previous Layer": "This layer can be reconciled to the PREVIOUS LAYER."
+    },
+    "reconciliation-pattern": {
+      "CheckSum": "Data is reconciled via CheckSum.",
+      "Compare Hash Records": "Data is reconciled via Compare Hash Records.",
+      "Compare Row Count": "Data is reconciled via Compare Row Count.",
+      "Full Data Compare": "Data is reconciled via Full Data Compare.",
+      "Other": "Data is reconciled via Other."
+    },
+    "data-contract-alerts": {
+      "Yes": "YES data contract alerts are issued for this layer.",
+      "No": "NO data contract alerts are not issued for this layer."
+    },
+    "data-quality-alerts": {
+      "Yes": "YES data quality alerts are issued for this layer.",
+      "No": "NO data quality alerts are not issued for this layer."
+    },
+    "persona-access-read": {
+      "Analyst": "Analyst Persona is ALLOWED to READ data in this layer.",
+      "Analytics Engineer": "Analytics Engineer Persona is ALLOWED to READ data in this layer.",
+      "Data Engineer": "Data Engineer Persona is ALLOWED to READ data in this layer.",
+      "Data Scientist": "Data Scientist Persona is ALLOWED to READ data in this layer.",
+      "External": "External Persona is ALLOWED to READ data in this layer.",
+      "Information Consumer": "Information Consumer Persona is ALLOWED to READ data in this layer.",
+      "System Account": "System Account Persona is ALLOWED to READ data in this layer."
+    },
+    "persona-access-write": {
+      "Analyst": "Analyst Persona is ALLOWED to WRITE data into this layer.",
+      "Analytics Engineer": "Analytics Engineer Persona is ALLOWED to WRITE data into this layer.",
+      "Data Engineer": "Data Engineer Persona is ALLOWED to WRITE data into this layer.",
+      "Data Scientist": "Data Scientist Persona is ALLOWED to WRITE data into this layer.",
+      "External": "External Persona is ALLOWED to WRITE data into this layer.",
+      "Information Consumer": "Information Consumer Persona is ALLOWED to WRITE data into this layer.",
+      "System Account": "System Account Persona is ALLOWED to WRITE data into this layer."
+    },
+    "last-mile-tools": {
+      "AgileData": "Data is accessed using AgileData.",
+      "DataBricks": "Data is accessed using DataBricks.",
+      "GoodData": "Data is accessed using GoodData.",
+      "Google BigQuery Console": "Data is accessed using Google BigQuery Console.",
+      "Google Looker": "Data is accessed using Google Looker.",
+      "Google Looker Studio": "Data is accessed using Google Looker Studio.",
+      "Google Sheets": "Data is accessed using Google Sheets.",
+      "Microsoft Excel": "Data is accessed using Microsoft Excel.",
+      "Microsoft PowerBI": "Data is accessed using Microsoft PowerBI.",
+      "Mode": "Data is accessed using Mode.",
+      "Streamsets": "Data is accessed using Streamsets.",
+      "Tableau": "Data is accessed using Tableau."
+    },
+    "history-window": {
+      "All history": "Every delivery carries the full history of the asset.",
+      "1 day": "Each delivery contains the trailing 1 day of data.",
+      "3 days": "Each delivery contains the trailing 3 days of data.",
+      "7 days": "Each delivery contains the trailing 7 days of data.",
+      "30 days": "Each delivery contains the trailing 30 days of data.",
+      "90 days": "Each delivery contains the trailing 90 days of data.",
+      "1 year": "Each delivery contains the trailing 1 year of data."
+    },
+    "status": {
+      "Ideation": "An idea, not yet designed. Use while gathering requirements + sketching shape.",
+      "Design": "Being drafted. Schema, rules, and SLAs are taking form but nothing is built yet.",
+      "Development": "Being built. Pipelines, schemas, and rules are under active construction.",
+      "Testing": "Being validated. Implementation exists but is being checked against the contract.",
+      "Production": "Live. The contract is fulfilled; downstream consumers can rely on it.",
+      "Deprecated": "Still available, but discouraged. New consumers should migrate to a replacement.",
+      "Retired": "Removed from service. No longer published or supported."
+    }
+  }
+}

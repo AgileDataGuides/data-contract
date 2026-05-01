@@ -1,0 +1,335 @@
+{
+  "version": "2.1",
+  "id": "stripe-customers-contract",
+  "name": "Stripe Customers",
+  "description": "Data contract for the Stripe Customers object (`/v1/customers` API). The Customer is the master record every paying SaaS account is anchored to — every subscription, invoice and charge in Stripe links back to a Customer ID. Sourced via the Stripe REST API and webhook stream (`customer.created`, `customer.updated`, `customer.deleted`).",
+  "status": [
+    "Production"
+  ],
+  "domain": {
+    "id": "domain-finance",
+    "name": "Finance",
+    "description": "Revenue, billing, and customer financial relationships."
+  },
+  "informationProduct": {
+    "id": "info-product-saas-revenue-metrics",
+    "name": "SaaS Revenue Metrics",
+    "description": "MRR, ARR, ARPU, churn, expansion — the SaaS revenue dashboard."
+  },
+  "tags": [
+    "stripe",
+    "billing",
+    "customers",
+    "saas-revenue",
+    "master-data"
+  ],
+  "changeDetection": [
+    "Change Data Capture (Database Logs)"
+  ],
+  "retentionPeriod": [
+    "7 years"
+  ],
+  "historyWindow": [
+    "All history"
+  ],
+  "dataAsset": {
+    "id": "raw.stripe.customers",
+    "name": "raw.stripe.customers",
+    "description": "Daily snapshot of Stripe Customer objects with webhook-driven incremental updates layered on top. One row per customer per change event."
+  },
+  "team": [
+    {
+      "id": "team-finance-revops",
+      "name": "Revenue Operations",
+      "description": "Business owner of the customer master record — reconciles Stripe customers against CRM accounts.",
+      "role": "owner"
+    },
+    {
+      "id": "team-data-engineering",
+      "name": "Data Engineering",
+      "description": "Owns the Stripe API ingestion job and webhook stream consumer.",
+      "role": "steward"
+    },
+    {
+      "id": "team-finance-analytics",
+      "name": "Finance Analytics",
+      "description": "Primary consumer — builds MRR/ARR/cohort analyses on top of the customer master.",
+      "role": "consumer"
+    }
+  ],
+  "personas": [
+    {
+      "id": "persona-cro",
+      "name": "Chief Revenue Officer (CRO)",
+      "description": "Sets revenue strategy; needs accurate customer counts and segmentation."
+    },
+    {
+      "id": "persona-finance-analyst",
+      "name": "Finance Analyst",
+      "description": "Builds the monthly revenue close — trusts this contract for customer counts."
+    }
+  ],
+  "columns": [
+    {
+      "id": "id",
+      "name": "id",
+      "description": "Stripe-issued unique customer identifier. Always starts with `cus_` followed by a 14-character alphanumeric string. Stable for the life of the customer record.",
+      "dataType": "string",
+      "required": true,
+      "unique": true,
+      "primaryKey": true,
+      "classification": "internal"
+    },
+    {
+      "id": "email",
+      "name": "email",
+      "description": "Customer's email address. Primary contact for invoices and receipts. Treated as PII — restrict access to Finance + RevOps.",
+      "dataType": "string",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "confidential"
+    },
+    {
+      "id": "name",
+      "name": "name",
+      "description": "Customer's full legal name (B2C) or company name (B2B). Free-text — Stripe does not validate.",
+      "dataType": "string",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "confidential"
+    },
+    {
+      "id": "description",
+      "name": "description",
+      "description": "Internal description set by the merchant when creating the customer. Often used to store a CRM account ID for cross-reference.",
+      "dataType": "string",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "currency",
+      "name": "currency",
+      "description": "Three-letter ISO 4217 currency code in lowercase (e.g. `usd`, `gbp`, `nzd`). The currency the customer will be charged in. Set on first invoice and immutable afterwards.",
+      "dataType": "string",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "public"
+    },
+    {
+      "id": "balance",
+      "name": "balance",
+      "description": "Customer's account balance in the smallest currency unit (cents for USD). Negative = credit on account; positive = amount owed. Used to apply credits against future invoices.",
+      "dataType": "integer",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "delinquent",
+      "name": "delinquent",
+      "description": "Boolean — `true` if the customer has unpaid invoices past their due date. Drives dunning workflows and at-risk customer flags.",
+      "dataType": "boolean",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "tax_exempt",
+      "name": "tax_exempt",
+      "description": "Tax exemption status: `none`, `exempt`, or `reverse`. Drives whether tax is applied on invoices.",
+      "dataType": "string",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "created",
+      "name": "created",
+      "description": "Unix timestamp (seconds since epoch, UTC) when the customer was first created in Stripe. The acquisition date for cohort analysis.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "_extracted_at",
+      "name": "_extracted_at",
+      "description": "ISO-8601 timestamp when the row was extracted from Stripe. Set by the ingestion job. Used for reconciliation and to identify late-arriving updates.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    }
+  ],
+  "glossaryTerms": [
+    {
+      "id": "term-customer",
+      "name": "Customer",
+      "description": "An entity (person or business) that has at least one active or historical paid relationship with us. In SaaS revenue accounting, equivalent to a Stripe Customer with one or more Subscriptions."
+    },
+    {
+      "id": "term-delinquent",
+      "name": "Delinquent",
+      "description": "A customer with one or more invoices past their due date. Triggers dunning workflows and excludes the customer from active MRR until resolved."
+    }
+  ],
+  "deliveryTypes": [
+    {
+      "id": "delivery-snowflake",
+      "name": "Snowflake",
+      "description": "Loaded into the `raw.stripe` schema in Snowflake via Fivetran every 6 hours.",
+      "typeKey": "snowflake"
+    },
+    {
+      "id": "delivery-stripe-api",
+      "name": "Stripe API",
+      "description": "Source system — REST API at https://api.stripe.com/v1/customers plus webhook events.",
+      "typeKey": "rest-api"
+    }
+  ],
+  "trustRules": [
+    {
+      "id": "tr-id-not-null",
+      "name": "id non-null + Stripe format",
+      "description": "Every row must have a populated `id` matching the Stripe customer ID format (`cus_` prefix + 14 chars).",
+      "category": "Completeness",
+      "rule": "id IS NOT NULL AND id LIKE 'cus_%' AND LENGTH(id) = 18",
+      "column": "id"
+    },
+    {
+      "id": "tr-id-unique",
+      "name": "id is unique",
+      "description": "Customer ID is the natural key — each ID may appear at most once per snapshot.",
+      "category": "Uniqueness",
+      "rule": "COUNT(*) GROUP BY id HAVING COUNT(*) > 1 = 0",
+      "column": "id"
+    },
+    {
+      "id": "tr-email-format",
+      "name": "Email format valid",
+      "description": "When email is populated it must contain `@` and `.` — Stripe doesn't enforce this so we check on landing.",
+      "category": "Validity",
+      "rule": "email IS NULL OR email REGEXP '^.+@.+\\..+$'",
+      "column": "email"
+    },
+    {
+      "id": "tr-currency-iso",
+      "name": "Currency is a valid ISO 4217 code",
+      "description": "Currency must be a known three-letter lowercase ISO 4217 code that matches our supported list.",
+      "category": "Validity",
+      "rule": "currency IS NULL OR currency IN ('usd','gbp','eur','aud','nzd','cad','jpy','sgd')",
+      "column": "currency"
+    },
+    {
+      "id": "tr-pii-classified",
+      "name": "PII columns classified",
+      "description": "email and name are PII and must be marked `confidential`. Audited quarterly.",
+      "category": "Security",
+      "rule": "Columns email and name carry classification = 'confidential' on the contract definition",
+      "column": "email"
+    },
+    {
+      "id": "tr-freshness",
+      "name": "Freshness within 12 hours",
+      "description": "Latest `_extracted_at` across the dataset must be within the last 12 hours — drift would mean Fivetran is broken.",
+      "category": "Freshness",
+      "rule": "MAX(_extracted_at) > NOW() - INTERVAL '12 hours'",
+      "column": "_extracted_at"
+    }
+  ],
+  "dataSyncs": [
+    {
+      "id": "sync-frequency",
+      "name": "Refresh frequency",
+      "description": "Bulk snapshot via the Stripe API every 6 hours; webhook stream applies incrementals continuously.",
+      "property": "frequency",
+      "value": "6",
+      "unit": "hours"
+    },
+    {
+      "id": "sync-latency",
+      "name": "Webhook event latency",
+      "description": "p95 latency from Stripe webhook event to row appearing in Snowflake.",
+      "property": "latency",
+      "value": "5",
+      "unit": "minutes"
+    },
+    {
+      "id": "sync-uptime",
+      "name": "Pipeline uptime",
+      "description": "Monthly availability target for the customer ingestion pipeline.",
+      "property": "uptime",
+      "value": "99.5",
+      "unit": "percent"
+    }
+  ],
+  "lineage": [
+    {
+      "id": "lin-stripe-api",
+      "name": "Stripe Billing Platform",
+      "description": "The system of record for all paying customer relationships.",
+      "provType": "agent",
+      "role": "source system"
+    },
+    {
+      "id": "lin-fivetran",
+      "name": "Fivetran Stripe Connector",
+      "description": "Hourly pull from Stripe REST API into Snowflake `raw.stripe` schema.",
+      "provType": "activity",
+      "upstreamIds": [
+        "lin-stripe-api"
+      ],
+      "role": "ingestion"
+    }
+  ],
+  "exampleData": [
+    {
+      "id": "cus_NeGfPRiPVfCsLW",
+      "email": "ada@lovelace-analytics.com",
+      "name": "Lovelace Analytics Ltd",
+      "description": "CRM Account: ACC-00187",
+      "currency": "gbp",
+      "balance": "0",
+      "delinquent": "false",
+      "tax_exempt": "none",
+      "created": "1701432000",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    },
+    {
+      "id": "cus_OkRtL2yNhEeZxq",
+      "email": "billing@kiwicraft.co.nz",
+      "name": "KiwiCraft Brewing Co",
+      "description": "CRM Account: ACC-00412",
+      "currency": "nzd",
+      "balance": "-2500",
+      "delinquent": "false",
+      "tax_exempt": "none",
+      "created": "1714521600",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    },
+    {
+      "id": "cus_PxQmW8aBzKHvNd",
+      "email": "ap@northwindlogistics.com",
+      "name": "Northwind Logistics Inc",
+      "description": "CRM Account: ACC-00891",
+      "currency": "usd",
+      "balance": "14900",
+      "delinquent": "true",
+      "tax_exempt": "none",
+      "created": "1735689600",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    }
+  ],
+  "patternTypes": null,
+  "patternOverrides": {}
+}

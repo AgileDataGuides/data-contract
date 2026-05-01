@@ -1,0 +1,36 @@
+{
+  "name": "data-contract",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./canvas/ContractLayout.svelte": "./src/lib/components/canvas/ContractLayout.svelte",
+    "./canvas/ContractAgreementView.svelte": "./src/lib/components/canvas/ContractAgreementView.svelte",
+    "./converters/context-plane": "./src/lib/converters/context-plane.ts",
+    "./converters/rtf": "./src/lib/converters/rtf.ts",
+    "./converters/word": "./src/lib/converters/word.ts"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "build:demo": "DEMO_BUILD=true VITE_DEMO_MODE=true vite build",
+    "preview": "vite preview",
+    "prepare": "svelte-kit sync || echo ''",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "^7.0.0",
+    "@sveltejs/adapter-static": "^3.0.10",
+    "@sveltejs/kit": "^2.58.0",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "svelte": "^5.51.0",
+    "svelte-check": "^4.4.2",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
+  }
+}

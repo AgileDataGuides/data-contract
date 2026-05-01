@@ -1,0 +1,60 @@
+{
+  "$about": {
+    "purpose": "Shared catalog of predefined Delivery Type values across the Context Plane ecosystem. Delivery Types describe how/where data is delivered — last-mile BI tools (Looker, Tableau), warehouses (BigQuery, Snowflake), object stores (S3), streaming platforms (Kafka), etc.",
+    "consumers": [
+      "apps/data-contract — Contract tab Delivery / Infrastructure section",
+      "apps/information-product-canvas — IPC Delivery Types section (future)",
+      "apps/layered-data-architecture-checklist — last-mile tool lookups (future)",
+      "packages/shared/src/languages/bitol — maps catalog keys to ODCS server type enum",
+      "packages/shared/src/languages/openmetadata — maps catalog keys to OMS equivalents (future)"
+    ],
+    "philosophy": "Predefined values on a core AgileData object type (global_delivery_type). NO per-type field schemas — we start simple. Extra attributes can be added over time via explicit design, never driven by external standards.",
+    "how_to_add": "New entry keyed by a short slug (kebab-case, no spaces). Include {label, category, description}. Categories group items in UI pickers: bi | warehouse | relational | object_store | streaming | protocol | other."
+  },
+  "types": {
+    "looker":     { "label": "Looker",            "category": "bi",           "description": "Google's enterprise BI and data modeling platform." },
+    "power-bi":   { "label": "Power BI",          "category": "bi",           "description": "Microsoft's business analytics service." },
+    "tableau":    { "label": "Tableau",           "category": "bi",           "description": "Visual analytics and BI platform." },
+    "metabase":   { "label": "Metabase",          "category": "bi",           "description": "Open-source BI tool." },
+    "superset":   { "label": "Apache Superset",   "category": "bi",           "description": "Open-source data exploration and visualization platform." },
+    "mode":       { "label": "Mode",              "category": "bi",           "description": "Collaborative analytics platform." },
+    "hex":        { "label": "Hex",               "category": "bi",           "description": "Collaborative data notebook and app platform." },
+    "sigma":      { "label": "Sigma",             "category": "bi",           "description": "Cloud analytics platform with a spreadsheet-like UI." },
+
+    "bigquery":   { "label": "BigQuery",          "category": "warehouse",    "description": "Google Cloud's serverless data warehouse." },
+    "snowflake":  { "label": "Snowflake",         "category": "warehouse",    "description": "Cloud-native data platform." },
+    "redshift":   { "label": "Amazon Redshift",   "category": "warehouse",    "description": "AWS-managed petabyte-scale data warehouse." },
+    "databricks": { "label": "Databricks",        "category": "warehouse",    "description": "Unified lakehouse platform (Hive / Unity Catalog)." },
+    "synapse":    { "label": "Azure Synapse",     "category": "warehouse",    "description": "Microsoft's integrated analytics service." },
+
+    "postgres":   { "label": "PostgreSQL",        "category": "relational",   "description": "Open-source relational database." },
+    "mysql":      { "label": "MySQL",             "category": "relational",   "description": "Open-source relational database." },
+    "sqlserver":  { "label": "SQL Server",        "category": "relational",   "description": "Microsoft's relational database engine." },
+    "oracle":     { "label": "Oracle Database",   "category": "relational",   "description": "Oracle's relational database." },
+
+    "s3":         { "label": "Amazon S3",         "category": "object_store", "description": "AWS object storage for data files." },
+    "azure":      { "label": "Azure Blob / ADLS", "category": "object_store", "description": "Azure Blob Storage or Data Lake Storage." },
+    "gcs":        { "label": "Google Cloud Storage","category": "object_store","description": "Google Cloud object storage." },
+
+    "kafka":      { "label": "Apache Kafka",      "category": "streaming",    "description": "Distributed event streaming platform." },
+    "kinesis":    { "label": "Amazon Kinesis",    "category": "streaming",    "description": "AWS real-time data streaming service." },
+    "pubsub":     { "label": "Google Pub/Sub",    "category": "streaming",    "description": "GCP asynchronous messaging service." },
+
+    "api":        { "label": "HTTP API",          "category": "protocol",     "description": "HTTP / REST API endpoint delivering data." },
+    "sftp":       { "label": "SFTP",              "category": "protocol",     "description": "Secure file transfer protocol drop." },
+    "local":      { "label": "Local File",        "category": "protocol",     "description": "Local filesystem (useful for dev / preview)." },
+
+    "custom":     { "label": "Custom",            "category": "other",        "description": "A delivery type not yet in the catalog — free-form entry." }
+  },
+  "categoryOrder": ["bi", "warehouse", "lakehouse", "relational", "object_store", "streaming", "protocol", "other"],
+  "categoryLabels": {
+    "bi":           "BI & Last-Mile",
+    "warehouse":    "Data Warehouse",
+    "lakehouse":    "Lakehouse",
+    "relational":   "Relational Database",
+    "object_store": "Object Store",
+    "streaming":    "Streaming",
+    "protocol":     "Protocol / Raw File",
+    "other":        "Other"
+  }
+}

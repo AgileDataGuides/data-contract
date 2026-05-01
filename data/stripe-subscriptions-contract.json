@@ -1,0 +1,448 @@
+{
+  "version": "2.1",
+  "id": "stripe-subscriptions-contract",
+  "name": "Stripe Subscriptions",
+  "description": "Data contract for the Stripe Subscriptions object (`/v1/subscriptions` API). The Subscription is the foundation of the SaaS revenue model — each row represents one customer's commitment to pay for a Product on a recurring schedule. This contract underpins the MRR / ARR calculations on the SaaS Revenue Metrics dashboard. Sourced via the Stripe REST API and webhook stream (`customer.subscription.*` events).",
+  "status": [
+    "Production"
+  ],
+  "domain": {
+    "id": "domain-finance",
+    "name": "Finance",
+    "description": "Revenue, billing, and customer financial relationships."
+  },
+  "informationProduct": {
+    "id": "info-product-saas-revenue-metrics",
+    "name": "SaaS Revenue Metrics",
+    "description": "MRR, ARR, ARPU, churn, expansion — the SaaS revenue dashboard."
+  },
+  "tags": [
+    "stripe",
+    "billing",
+    "subscriptions",
+    "saas-revenue",
+    "mrr",
+    "arr"
+  ],
+  "changeDetection": [
+    "Change Data Capture (Database Logs)"
+  ],
+  "retentionPeriod": [
+    "7 years"
+  ],
+  "historyWindow": [
+    "All history"
+  ],
+  "dataAsset": {
+    "id": "raw.stripe.subscriptions",
+    "name": "raw.stripe.subscriptions",
+    "description": "Snapshot of every Stripe Subscription with the full lifecycle history (status transitions, plan changes, cancellations). One row per subscription per change event."
+  },
+  "team": [
+    {
+      "id": "team-finance-revops",
+      "name": "Revenue Operations",
+      "description": "Business owner — defines what counts as MRR vs. one-off revenue and signs off on the recognition logic.",
+      "role": "owner"
+    },
+    {
+      "id": "team-data-engineering",
+      "name": "Data Engineering",
+      "description": "Owns the Stripe API ingestion job and webhook stream consumer.",
+      "role": "steward"
+    },
+    {
+      "id": "team-finance-analytics",
+      "name": "Finance Analytics",
+      "description": "Primary consumer — builds MRR / ARR / cohort / churn analyses on top of this contract.",
+      "role": "consumer"
+    },
+    {
+      "id": "team-product-analytics",
+      "name": "Product Analytics",
+      "description": "Secondary consumer — uses subscription data for retention and expansion modelling.",
+      "role": "consumer"
+    }
+  ],
+  "personas": [
+    {
+      "id": "persona-cro",
+      "name": "Chief Revenue Officer (CRO)",
+      "description": "Owns the MRR / ARR numbers in the board pack — needs a contract this critical to be Production-grade."
+    },
+    {
+      "id": "persona-cfo",
+      "name": "Chief Financial Officer (CFO)",
+      "description": "Signs off on the monthly revenue close that uses these subscriptions as the canonical recurring revenue list."
+    },
+    {
+      "id": "persona-finance-analyst",
+      "name": "Finance Analyst",
+      "description": "Builds and reconciles the MRR walk every month."
+    }
+  ],
+  "columns": [
+    {
+      "id": "id",
+      "name": "id",
+      "description": "Stripe-issued unique subscription identifier. Always starts with `sub_` followed by a 14-character alphanumeric string.",
+      "dataType": "string",
+      "required": true,
+      "unique": true,
+      "primaryKey": true,
+      "classification": "internal"
+    },
+    {
+      "id": "customer",
+      "name": "customer",
+      "description": "Foreign key — Stripe Customer ID this subscription belongs to. Joins to `raw.stripe.customers.id`.",
+      "dataType": "string",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "status",
+      "name": "status",
+      "description": "Subscription lifecycle status: `trialing`, `active`, `past_due`, `unpaid`, `canceled`, `incomplete`, `incomplete_expired`, `paused`. Drives whether the subscription contributes to MRR (only `active`, `trialing`, `past_due`).",
+      "dataType": "string",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "plan_id",
+      "name": "plan_id",
+      "description": "Stripe Price ID the subscription is on. Joins to `raw.stripe.prices.id` to resolve the product, billing interval, and unit amount.",
+      "dataType": "string",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "quantity",
+      "name": "quantity",
+      "description": "Number of seats / units the subscription covers. MRR contribution = price.unit_amount × quantity (normalised to monthly).",
+      "dataType": "integer",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "currency",
+      "name": "currency",
+      "description": "Three-letter ISO 4217 currency code in lowercase. Inherited from the customer record.",
+      "dataType": "string",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "public"
+    },
+    {
+      "id": "mrr_amount_local",
+      "name": "mrr_amount_local",
+      "description": "Monthly Recurring Revenue contribution in the subscription's local currency, in cents. For yearly subscriptions this is unit_amount / 12 × quantity. Calculated by the ingestion job — not a Stripe field.",
+      "dataType": "decimal",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "current_period_start",
+      "name": "current_period_start",
+      "description": "Unix timestamp of the start of the current billing period.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "current_period_end",
+      "name": "current_period_end",
+      "description": "Unix timestamp of the end of the current billing period — when the next invoice will be generated.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "cancel_at_period_end",
+      "name": "cancel_at_period_end",
+      "description": "Boolean — `true` if the customer has scheduled cancellation at the end of the current period. A leading indicator of churn before the subscription transitions to `canceled`.",
+      "dataType": "boolean",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "canceled_at",
+      "name": "canceled_at",
+      "description": "Unix timestamp the subscription was canceled (status → `canceled`). Null while active.",
+      "dataType": "timestamp",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "trial_start",
+      "name": "trial_start",
+      "description": "Unix timestamp the trial period began. Null if the subscription was never in trial.",
+      "dataType": "timestamp",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "trial_end",
+      "name": "trial_end",
+      "description": "Unix timestamp the trial period ended (or will end). Null if no trial.",
+      "dataType": "timestamp",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "start_date",
+      "name": "start_date",
+      "description": "Unix timestamp the subscription was first created. The acquisition date for cohort analysis.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "_extracted_at",
+      "name": "_extracted_at",
+      "description": "ISO-8601 timestamp when the row was extracted from Stripe.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    }
+  ],
+  "glossaryTerms": [
+    {
+      "id": "term-mrr",
+      "name": "Monthly Recurring Revenue (MRR)",
+      "description": "The total contracted recurring revenue normalised to a monthly basis. Sum of mrr_amount_local across all subscriptions with status in (`active`, `trialing`, `past_due`), converted to USD at the contract's recognition rate."
+    },
+    {
+      "id": "term-arr",
+      "name": "Annual Recurring Revenue (ARR)",
+      "description": "MRR × 12. The annualised run-rate of recurring revenue."
+    },
+    {
+      "id": "term-churn",
+      "name": "Churn",
+      "description": "Subscriptions that transitioned from `active` / `trialing` / `past_due` to `canceled` in a given period. Customer churn = unique customers; revenue churn = MRR lost."
+    },
+    {
+      "id": "term-expansion",
+      "name": "Expansion",
+      "description": "Net increase in MRR from existing customers in a period (upgrades, additional seats, cross-sells), net of contractions (downgrades)."
+    }
+  ],
+  "deliveryTypes": [
+    {
+      "id": "delivery-snowflake",
+      "name": "Snowflake",
+      "description": "Loaded into the `raw.stripe` schema in Snowflake every 1 hour for subscriptions (more frequent than customers because MRR drift is critical).",
+      "typeKey": "snowflake"
+    },
+    {
+      "id": "delivery-stripe-api",
+      "name": "Stripe API",
+      "description": "Source — REST API at https://api.stripe.com/v1/subscriptions plus webhook events.",
+      "typeKey": "rest-api"
+    }
+  ],
+  "trustRules": [
+    {
+      "id": "tr-id-not-null",
+      "name": "id non-null + Stripe format",
+      "description": "Every row must have a populated `id` matching the Stripe subscription ID format (`sub_` prefix).",
+      "category": "Completeness",
+      "rule": "id IS NOT NULL AND id LIKE 'sub_%'",
+      "column": "id"
+    },
+    {
+      "id": "tr-customer-fk",
+      "name": "customer FK valid",
+      "description": "Every subscription's `customer` must resolve to a row in `raw.stripe.customers.id`. Orphans block MRR aggregation.",
+      "category": "Accuracy",
+      "rule": "customer IN (SELECT id FROM raw.stripe.customers)",
+      "column": "customer"
+    },
+    {
+      "id": "tr-status-enum",
+      "name": "status is a known Stripe value",
+      "description": "Status must be one of the documented Stripe subscription statuses. Unknown values would silently distort MRR.",
+      "category": "Validity",
+      "rule": "status IN ('trialing','active','past_due','unpaid','canceled','incomplete','incomplete_expired','paused')",
+      "column": "status"
+    },
+    {
+      "id": "tr-mrr-non-negative",
+      "name": "MRR amount non-negative",
+      "description": "MRR contribution can never be negative — credits are handled via invoice line items, not subscription MRR.",
+      "category": "Validity",
+      "rule": "mrr_amount_local >= 0",
+      "column": "mrr_amount_local"
+    },
+    {
+      "id": "tr-mrr-nonzero-active",
+      "name": "Active subscriptions have non-zero MRR",
+      "description": "An active or trialing subscription with `mrr_amount_local = 0` indicates a calculation bug — investigate.",
+      "category": "Accuracy",
+      "rule": "status IN ('active','trialing','past_due') AND mrr_amount_local > 0",
+      "column": "mrr_amount_local"
+    },
+    {
+      "id": "tr-period-ordered",
+      "name": "Period start before period end",
+      "description": "current_period_start must be strictly less than current_period_end.",
+      "category": "Validity",
+      "rule": "current_period_start < current_period_end",
+      "column": "current_period_start"
+    },
+    {
+      "id": "tr-canceled-at-set",
+      "name": "Canceled subscriptions have canceled_at",
+      "description": "Subscriptions with status = `canceled` must have a populated canceled_at timestamp.",
+      "category": "Completeness",
+      "rule": "status != 'canceled' OR canceled_at IS NOT NULL",
+      "column": "canceled_at"
+    },
+    {
+      "id": "tr-freshness",
+      "name": "Freshness within 90 minutes",
+      "description": "Latest `_extracted_at` across the dataset must be within the last 90 minutes — given the 1-hour cadence and webhook stream, anything older means the pipeline is degraded.",
+      "category": "Freshness",
+      "rule": "MAX(_extracted_at) > NOW() - INTERVAL '90 minutes'",
+      "column": "_extracted_at"
+    }
+  ],
+  "dataSyncs": [
+    {
+      "id": "sync-frequency",
+      "name": "Refresh frequency",
+      "description": "Bulk snapshot via the Stripe API every 1 hour; webhook stream applies incrementals continuously.",
+      "property": "frequency",
+      "value": "1",
+      "unit": "hours"
+    },
+    {
+      "id": "sync-latency",
+      "name": "Webhook event latency",
+      "description": "p95 latency from Stripe webhook event (`customer.subscription.updated`) to row appearing in Snowflake.",
+      "property": "latency",
+      "value": "5",
+      "unit": "minutes"
+    },
+    {
+      "id": "sync-uptime",
+      "name": "Pipeline uptime",
+      "description": "Monthly availability target — this contract drives the board pack so the bar is high.",
+      "property": "uptime",
+      "value": "99.9",
+      "unit": "percent"
+    }
+  ],
+  "lineage": [
+    {
+      "id": "lin-stripe-api",
+      "name": "Stripe Billing Platform",
+      "description": "The system of record for all subscriptions.",
+      "provType": "agent",
+      "role": "source system"
+    },
+    {
+      "id": "lin-fivetran",
+      "name": "Fivetran Stripe Connector",
+      "description": "Hourly pull from Stripe REST API into Snowflake `raw.stripe` schema.",
+      "provType": "activity",
+      "upstreamIds": [
+        "lin-stripe-api"
+      ],
+      "role": "ingestion"
+    },
+    {
+      "id": "lin-mrr-calc",
+      "name": "MRR calculation job",
+      "description": "Adds the calculated `mrr_amount_local` column by joining to `raw.stripe.prices` and normalising to monthly.",
+      "provType": "activity",
+      "upstreamIds": [
+        "lin-fivetran"
+      ],
+      "role": "transformation"
+    }
+  ],
+  "exampleData": [
+    {
+      "id": "sub_1OsFc7Lp9XpYzQwR4kBnNm5T",
+      "customer": "cus_NeGfPRiPVfCsLW",
+      "status": "active",
+      "plan_id": "price_1OqJfmLp9XpYzQwRTeamMonthly",
+      "quantity": "12",
+      "currency": "gbp",
+      "mrr_amount_local": "59880",
+      "current_period_start": "1714521600",
+      "current_period_end": "1717200000",
+      "cancel_at_period_end": "false",
+      "canceled_at": "",
+      "trial_start": "1701432000",
+      "trial_end": "1702641600",
+      "start_date": "1701432000",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    },
+    {
+      "id": "sub_1PaB8MLp9XpYzQwR8jKqVx2H",
+      "customer": "cus_OkRtL2yNhEeZxq",
+      "status": "trialing",
+      "plan_id": "price_1OqJfmLp9XpYzQwRStarterAnnual",
+      "quantity": "5",
+      "currency": "nzd",
+      "mrr_amount_local": "8325",
+      "current_period_start": "1714521600",
+      "current_period_end": "1746057600",
+      "cancel_at_period_end": "false",
+      "canceled_at": "",
+      "trial_start": "1714521600",
+      "trial_end": "1715731200",
+      "start_date": "1714521600",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    },
+    {
+      "id": "sub_1QwR3KLp9XpYzQwR2pZxNm7F",
+      "customer": "cus_PxQmW8aBzKHvNd",
+      "status": "past_due",
+      "plan_id": "price_1OqJfmLp9XpYzQwREnterpriseMonthly",
+      "quantity": "50",
+      "currency": "usd",
+      "mrr_amount_local": "499500",
+      "current_period_start": "1714521600",
+      "current_period_end": "1717200000",
+      "cancel_at_period_end": "false",
+      "canceled_at": "",
+      "trial_start": "",
+      "trial_end": "",
+      "start_date": "1735689600",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    }
+  ],
+  "patternTypes": null,
+  "patternOverrides": {}
+}

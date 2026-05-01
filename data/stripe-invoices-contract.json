@@ -1,0 +1,461 @@
+{
+  "version": "2.1",
+  "id": "stripe-invoices-contract",
+  "name": "Stripe Invoices",
+  "description": "Data contract for the Stripe Invoices object (`/v1/invoices` API). Each row is a billing event — the canonical record of revenue billed (and either paid, outstanding or written off). This contract underpins the GAAP-aligned recognised revenue calculation, AR aging, and dunning workflow. Sourced via the Stripe REST API and webhook stream (`invoice.*` events).",
+  "status": [
+    "Production"
+  ],
+  "domain": {
+    "id": "domain-finance",
+    "name": "Finance",
+    "description": "Revenue, billing, and customer financial relationships."
+  },
+  "informationProduct": {
+    "id": "info-product-saas-revenue-metrics",
+    "name": "SaaS Revenue Metrics",
+    "description": "MRR, ARR, ARPU, churn, expansion — the SaaS revenue dashboard."
+  },
+  "tags": [
+    "stripe",
+    "billing",
+    "invoices",
+    "revenue-recognition",
+    "ar"
+  ],
+  "changeDetection": [
+    "Change Data Capture (Database Logs)"
+  ],
+  "retentionPeriod": [
+    "10 years"
+  ],
+  "historyWindow": [
+    "All history"
+  ],
+  "dataAsset": {
+    "id": "raw.stripe.invoices",
+    "name": "raw.stripe.invoices",
+    "description": "Every invoice issued by Stripe — open, paid, void or uncollectible — with full status history. One row per invoice per state change."
+  },
+  "team": [
+    {
+      "id": "team-finance-controller",
+      "name": "Financial Controller",
+      "description": "Business owner — signs off on revenue recognition rules and audit trail.",
+      "role": "owner"
+    },
+    {
+      "id": "team-data-engineering",
+      "name": "Data Engineering",
+      "description": "Owns the Stripe API ingestion job and webhook stream consumer.",
+      "role": "steward"
+    },
+    {
+      "id": "team-finance-analytics",
+      "name": "Finance Analytics",
+      "description": "Primary consumer — builds the monthly revenue close and AR aging.",
+      "role": "consumer"
+    },
+    {
+      "id": "team-collections",
+      "name": "Collections",
+      "description": "Consumer — works the dunning queue from the open invoice list.",
+      "role": "consumer"
+    }
+  ],
+  "personas": [
+    {
+      "id": "persona-cfo",
+      "name": "Chief Financial Officer (CFO)",
+      "description": "Signs off on the monthly revenue close that uses these invoices."
+    },
+    {
+      "id": "persona-controller",
+      "name": "Financial Controller",
+      "description": "Reconciles Stripe invoice totals against the GL each month."
+    },
+    {
+      "id": "persona-collections-analyst",
+      "name": "Collections Analyst",
+      "description": "Reviews the open and past-due invoice list daily."
+    }
+  ],
+  "columns": [
+    {
+      "id": "id",
+      "name": "id",
+      "description": "Stripe-issued unique invoice identifier. Always starts with `in_`.",
+      "dataType": "string",
+      "required": true,
+      "unique": true,
+      "primaryKey": true,
+      "classification": "internal"
+    },
+    {
+      "id": "number",
+      "name": "number",
+      "description": "Human-readable invoice number Stripe generates (e.g. `INV-0042-A`). What the customer sees on their copy of the invoice.",
+      "dataType": "string",
+      "required": false,
+      "unique": true,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "customer",
+      "name": "customer",
+      "description": "Foreign key — Stripe Customer ID being billed. Joins to `raw.stripe.customers.id`.",
+      "dataType": "string",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "subscription",
+      "name": "subscription",
+      "description": "Foreign key — the Stripe Subscription that generated this invoice. Null for one-off invoices. Joins to `raw.stripe.subscriptions.id`.",
+      "dataType": "string",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "status",
+      "name": "status",
+      "description": "Invoice lifecycle status: `draft`, `open`, `paid`, `uncollectible`, `void`. Drives revenue recognition (only `paid` is recognised cash; `open` is AR; `uncollectible` is bad debt; `void` is reversed).",
+      "dataType": "string",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "amount_due",
+      "name": "amount_due",
+      "description": "Total amount the customer owes on this invoice in the smallest currency unit (cents). Set when the invoice is finalised.",
+      "dataType": "decimal",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "amount_paid",
+      "name": "amount_paid",
+      "description": "Total amount actually collected against this invoice in the smallest currency unit. May be less than `amount_due` if partially paid.",
+      "dataType": "decimal",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "amount_remaining",
+      "name": "amount_remaining",
+      "description": "Outstanding balance = amount_due - amount_paid, in the smallest currency unit. Zero on fully-paid invoices.",
+      "dataType": "decimal",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "currency",
+      "name": "currency",
+      "description": "Three-letter ISO 4217 currency code in lowercase. Matches the customer's currency.",
+      "dataType": "string",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "public"
+    },
+    {
+      "id": "tax",
+      "name": "tax",
+      "description": "Total tax collected on this invoice, in the smallest currency unit.",
+      "dataType": "decimal",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "created",
+      "name": "created",
+      "description": "Unix timestamp the invoice was created.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "due_date",
+      "name": "due_date",
+      "description": "Unix timestamp the invoice is due. Drives the dunning workflow once exceeded.",
+      "dataType": "timestamp",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "period_start",
+      "name": "period_start",
+      "description": "Unix timestamp of the start of the service period being billed.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "period_end",
+      "name": "period_end",
+      "description": "Unix timestamp of the end of the service period being billed. Drives the recognised revenue spread.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "paid_at",
+      "name": "paid_at",
+      "description": "Unix timestamp the invoice was fully paid (status → `paid`). Null for unpaid invoices.",
+      "dataType": "timestamp",
+      "required": false,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    },
+    {
+      "id": "_extracted_at",
+      "name": "_extracted_at",
+      "description": "ISO-8601 timestamp when the row was extracted from Stripe.",
+      "dataType": "timestamp",
+      "required": true,
+      "unique": false,
+      "primaryKey": false,
+      "classification": "internal"
+    }
+  ],
+  "glossaryTerms": [
+    {
+      "id": "term-recognised-revenue",
+      "name": "Recognised Revenue",
+      "description": "Revenue earned in a period, calculated by spreading each invoice's `amount_paid` evenly across (`period_end` - `period_start`) days using GAAP / IFRS 15 principles. Only invoices with status = `paid` contribute."
+    },
+    {
+      "id": "term-ar",
+      "name": "Accounts Receivable (AR)",
+      "description": "Total `amount_remaining` across all open invoices. The AR aging report buckets these by days overdue."
+    },
+    {
+      "id": "term-bad-debt",
+      "name": "Bad Debt",
+      "description": "Invoices marked `uncollectible` after dunning fails. Written off against the bad debt reserve."
+    }
+  ],
+  "deliveryTypes": [
+    {
+      "id": "delivery-snowflake",
+      "name": "Snowflake",
+      "description": "Loaded into the `raw.stripe` schema in Snowflake every 1 hour.",
+      "typeKey": "snowflake"
+    },
+    {
+      "id": "delivery-stripe-api",
+      "name": "Stripe API",
+      "description": "Source — REST API at https://api.stripe.com/v1/invoices plus webhook events.",
+      "typeKey": "rest-api"
+    }
+  ],
+  "trustRules": [
+    {
+      "id": "tr-id-not-null",
+      "name": "id non-null + Stripe format",
+      "description": "Every row must have a populated `id` matching the Stripe invoice ID format (`in_` prefix).",
+      "category": "Completeness",
+      "rule": "id IS NOT NULL AND id LIKE 'in_%'",
+      "column": "id"
+    },
+    {
+      "id": "tr-customer-fk",
+      "name": "customer FK valid",
+      "description": "Every invoice's `customer` must resolve to a row in `raw.stripe.customers.id`.",
+      "category": "Accuracy",
+      "rule": "customer IN (SELECT id FROM raw.stripe.customers)",
+      "column": "customer"
+    },
+    {
+      "id": "tr-status-enum",
+      "name": "status is a known Stripe value",
+      "description": "Status must be one of the documented Stripe invoice statuses.",
+      "category": "Validity",
+      "rule": "status IN ('draft','open','paid','uncollectible','void')",
+      "column": "status"
+    },
+    {
+      "id": "tr-amounts-balance",
+      "name": "amount balance arithmetic",
+      "description": "amount_remaining must equal amount_due - amount_paid. Drift indicates a bug in the ingestion job or a Stripe data inconsistency.",
+      "category": "Accuracy",
+      "rule": "amount_remaining = amount_due - amount_paid",
+      "column": "amount_remaining"
+    },
+    {
+      "id": "tr-paid-implies-zero-remaining",
+      "name": "paid invoices have zero remaining",
+      "description": "An invoice with status = `paid` must have amount_remaining = 0.",
+      "category": "Accuracy",
+      "rule": "status != 'paid' OR amount_remaining = 0",
+      "column": "amount_remaining"
+    },
+    {
+      "id": "tr-paid-at-set",
+      "name": "Paid invoices have paid_at",
+      "description": "Invoices with status = `paid` must have a populated paid_at timestamp.",
+      "category": "Completeness",
+      "rule": "status != 'paid' OR paid_at IS NOT NULL",
+      "column": "paid_at"
+    },
+    {
+      "id": "tr-period-ordered",
+      "name": "Period start before period end",
+      "description": "period_start must be strictly less than period_end.",
+      "category": "Validity",
+      "rule": "period_start < period_end",
+      "column": "period_start"
+    },
+    {
+      "id": "tr-amounts-non-negative",
+      "name": "Invoice amounts non-negative",
+      "description": "amount_due, amount_paid and amount_remaining must all be ≥ 0. Refunds are recorded on separate Charge objects, not as negative invoice amounts.",
+      "category": "Validity",
+      "rule": "amount_due >= 0 AND amount_paid >= 0 AND amount_remaining >= 0",
+      "column": "amount_due"
+    },
+    {
+      "id": "tr-freshness",
+      "name": "Freshness within 90 minutes",
+      "description": "Latest `_extracted_at` across the dataset must be within the last 90 minutes.",
+      "category": "Freshness",
+      "rule": "MAX(_extracted_at) > NOW() - INTERVAL '90 minutes'",
+      "column": "_extracted_at"
+    }
+  ],
+  "dataSyncs": [
+    {
+      "id": "sync-frequency",
+      "name": "Refresh frequency",
+      "description": "Bulk snapshot via the Stripe API every 1 hour; webhook stream applies incrementals continuously.",
+      "property": "frequency",
+      "value": "1",
+      "unit": "hours"
+    },
+    {
+      "id": "sync-latency",
+      "name": "Webhook event latency",
+      "description": "p95 latency from `invoice.payment_succeeded` webhook to row appearing in Snowflake.",
+      "property": "latency",
+      "value": "5",
+      "unit": "minutes"
+    },
+    {
+      "id": "sync-uptime",
+      "name": "Pipeline uptime",
+      "description": "Monthly availability target for the invoices ingestion pipeline.",
+      "property": "uptime",
+      "value": "99.9",
+      "unit": "percent"
+    },
+    {
+      "id": "sync-retention",
+      "name": "Audit retention",
+      "description": "Per finance policy and tax regulations, every invoice row is retained for 10 years.",
+      "property": "retention",
+      "value": "10",
+      "unit": "years"
+    }
+  ],
+  "lineage": [
+    {
+      "id": "lin-stripe-api",
+      "name": "Stripe Billing Platform",
+      "description": "The system of record for all invoices.",
+      "provType": "agent",
+      "role": "source system"
+    },
+    {
+      "id": "lin-fivetran",
+      "name": "Fivetran Stripe Connector",
+      "description": "Hourly pull from Stripe REST API into Snowflake `raw.stripe` schema.",
+      "provType": "activity",
+      "upstreamIds": [
+        "lin-stripe-api"
+      ],
+      "role": "ingestion"
+    }
+  ],
+  "exampleData": [
+    {
+      "id": "in_1OsFc7Lp9XpYzQwRApr2026",
+      "number": "INV-0187-A",
+      "customer": "cus_NeGfPRiPVfCsLW",
+      "subscription": "sub_1OsFc7Lp9XpYzQwR4kBnNm5T",
+      "status": "paid",
+      "amount_due": "59880",
+      "amount_paid": "59880",
+      "amount_remaining": "0",
+      "currency": "gbp",
+      "tax": "11976",
+      "created": "1714521600",
+      "due_date": "1717200000",
+      "period_start": "1714521600",
+      "period_end": "1717200000",
+      "paid_at": "1714525200",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    },
+    {
+      "id": "in_1QwR3KLp9XpYzQwRApr2026",
+      "number": "INV-0891-A",
+      "customer": "cus_PxQmW8aBzKHvNd",
+      "subscription": "sub_1QwR3KLp9XpYzQwR2pZxNm7F",
+      "status": "open",
+      "amount_due": "599400",
+      "amount_paid": "450000",
+      "amount_remaining": "149400",
+      "currency": "usd",
+      "tax": "0",
+      "created": "1714521600",
+      "due_date": "1717113600",
+      "period_start": "1714521600",
+      "period_end": "1717200000",
+      "paid_at": "",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    },
+    {
+      "id": "in_1MzN5ZLp9XpYzQwRMar2026",
+      "number": "INV-0034-A",
+      "customer": "cus_OkRtL2yNhEeZxq",
+      "subscription": "",
+      "status": "void",
+      "amount_due": "8325",
+      "amount_paid": "0",
+      "amount_remaining": "0",
+      "currency": "nzd",
+      "tax": "1249",
+      "created": "1711929600",
+      "due_date": "1714521600",
+      "period_start": "1711929600",
+      "period_end": "1714521600",
+      "paid_at": "",
+      "_extracted_at": "2026-04-30T18:00:00Z"
+    }
+  ],
+  "patternTypes": null,
+  "patternOverrides": {}
+}

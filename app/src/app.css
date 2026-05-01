@@ -1,0 +1,5 @@
+@import 'tailwindcss';
+
+/* Scan shared components for Tailwind utility classes (Tailwind 4 auto-detection
+   doesn't cross workspace boundaries). */
+@source '../../../../packages/shared/src';

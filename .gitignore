@@ -1,0 +1,11 @@
+node_modules/
+.svelte-kit/
+build/
+data/*.json
+!data/stripe-customers-contract.json
+!data/stripe-subscriptions-contract.json
+!data/stripe-invoices-contract.json
+.DS_Store
+.env
+.env.*
+*.log
