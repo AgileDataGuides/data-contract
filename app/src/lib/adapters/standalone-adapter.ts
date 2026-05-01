@@ -148,13 +148,18 @@ export function createStandaloneAdapter(callbacks: {
 			} else {
 				// For non-contract nodes: name/description go through onUpdateNode,
 				// other properties go through onUpdateItemProperties (if provided).
+				//
+				// IMPORTANT: pass the underlying ContractItem id (`sourceId`), NOT the
+				// converter-wrapped node id (e.g. `dc-delivery_type-…`). Store mutators
+				// like `updateItemName` look up by raw item.id; the wrapped form would
+				// silently miss every record.
+				const sourceId = (node.properties?.sourceId as string) || id;
 				const nameOrDesc: Partial<ContextNode> = {};
 				if (updates.name !== undefined) nameOrDesc.name = updates.name;
 				if (updates.description !== undefined) nameOrDesc.description = updates.description;
-				if (Object.keys(nameOrDesc).length > 0) callbacks.onUpdateNode(id, nameOrDesc);
+				if (Object.keys(nameOrDesc).length > 0) callbacks.onUpdateNode(sourceId, nameOrDesc);
 
 				if (updates.properties && callbacks.onUpdateItemProperties) {
-					const sourceId = (node.properties?.sourceId as string) || id;
 					// Strip out non-editable system properties
 					const { canvas: _c, sourceId: _s, order: _o, ...rest } = updates.properties as Record<string, unknown>;
 					if (Object.keys(rest).length > 0) callbacks.onUpdateItemProperties(sourceId, rest);

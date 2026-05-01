@@ -63,7 +63,14 @@
 		getModel: () => store.model,
 		getSavedList: () => store.savedList,
 		onUpdateNode: (id, updates) => {
-			if (updates.name) updateItemName(id, updates.name);
+			if (updates.name) {
+				updateItemName(id, updates.name);
+				// Persist the rename — without this, the model is dirty in
+				// memory but never written to disk, so the change reverts on
+				// page reload.
+				clearTimeout(orderSaveTimer);
+				orderSaveTimer = setTimeout(() => saveModel(), 300);
+			}
 			if (updates.properties && typeof updates.properties.order === 'number') {
 				clearTimeout(orderSaveTimer);
 				orderSaveTimer = setTimeout(() => saveModel(), 300);
