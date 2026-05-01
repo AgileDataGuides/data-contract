@@ -33,6 +33,8 @@
 	import ContractExampleDataView from '$lib/components/canvas/ContractExampleDataView.svelte';
 	import ContractPatternsTab from '$lib/components/canvas/ContractPatternsTab.svelte';
 	import DictionaryTableView from '$lib/components/canvas/DictionaryTableView.svelte';
+	import CardEditModal from '$lib/components/canvas/CardEditModal.svelte';
+	import type { ContextNode } from '$lib/cp-shared';
 
 	let activeTab = $state<string>('contract');
 
@@ -178,8 +180,44 @@
 		return { nodes: [synthDataset, ...columnNodes], links: synthLinks };
 	});
 
-	function handleSelectNode(_id: string) {
-		// No-op in SA mode (no detail panel in this iteration)
+	// Card edit modal — clicking a card on the canvas opens the modal to edit
+	// name + description or delete the card. Pattern-driven Tier 2b chips
+	// (Status, Change Detection, History Window) are NOT routed through here:
+	// they have their own dropdown picker and aren't CanvasSection cards.
+	let editingCardId = $state<string | null>(null);
+	const editingCardNode = $derived(
+		editingCardId ? snapshot.nodes.find((n) => n.id === editingCardId) ?? null : null
+	);
+
+	function handleSelectNode(id: string) {
+		editingCardId = id;
+	}
+
+	async function handleCardSave(updates: { name: string; description: string }) {
+		if (!editingCardId) return;
+		await adapter.updateNode(editingCardId, updates);
+	}
+
+	async function handleCardDelete() {
+		if (!editingCardId) return;
+		await adapter.deleteNode(editingCardId);
+	}
+
+	function entityTypeLabel(node: ContextNode | null): string {
+		if (!node) return 'Card';
+		const labels = node.label.split(',').map((l) => l.trim());
+		if (labels.includes('global_data_asset')) return 'Data Asset';
+		if (labels.includes('dict_column')) return 'Column';
+		if (labels.includes('global_publisher')) return 'Team Member';
+		if (labels.includes('global_persona')) return 'Persona';
+		if (labels.includes('global_glossary_term')) return 'Glossary Term';
+		if (labels.includes('global_delivery_type')) return 'Delivery Type';
+		if (labels.includes('global_data_sync')) return 'Data Sync';
+		if (labels.includes('global_policy')) return 'Trust Rule';
+		if (labels.includes('global_domain')) return 'Domain';
+		if (labels.includes('global_info_product')) return 'Information Product';
+		if (labels.some((l) => l.startsWith('lineage_'))) return 'Lineage Item';
+		return 'Card';
 	}
 
 	function handleAddNode(entityLabel: string, name: string) {
@@ -478,4 +516,14 @@
 	</div>
 {:else}
 	<div class="flex items-center justify-center h-64 text-slate-400 text-sm">Loading models...</div>
+{/if}
+
+{#if editingCardNode}
+	<CardEditModal
+		node={editingCardNode}
+		typeLabel={entityTypeLabel(editingCardNode)}
+		onSave={handleCardSave}
+		onDelete={handleCardDelete}
+		onClose={() => (editingCardId = null)}
+	/>
 {/if}
