@@ -371,7 +371,7 @@
     },
     {
       "id": "lin-fivetran",
-      "name": "Fivetran Stripe Connector",
+      "name": "Custom Meltano Stripe Connector",
       "description": "Hourly pull from Stripe REST API into Snowflake `raw.stripe` schema.",
       "provType": "activity",
       "upstreamIds": [

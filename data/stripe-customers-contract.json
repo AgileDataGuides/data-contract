@@ -186,7 +186,7 @@
   "deliveryTypes": [
     {
       "id": "delivery-snowflake",
-      "name": "Snowflake",
+      "name": "Google Cloud Storage (GCS)",
       "description": "Loaded into the `raw.stripe` schema in Snowflake via Fivetran every 6 hours.",
       "typeKey": "snowflake"
     },
@@ -283,7 +283,7 @@
     },
     {
       "id": "lin-fivetran",
-      "name": "Fivetran Stripe Connector",
+      "name": "Custom Meltano Stripe Connector",
       "description": "Hourly pull from Stripe REST API into Snowflake `raw.stripe` schema.",
       "provType": "activity",
       "upstreamIds": [
