@@ -1,6 +1,6 @@
 <script lang="ts">
-	import CanvasSection from './CanvasSection.svelte';
-	import CanvasAreaShell from './CanvasAreaShell.svelte';
+	import CanvasSection from '$lib/components/canvas/CanvasSection.svelte';
+	import CanvasAreaShell from '$lib/components/canvas/CanvasAreaShell.svelte';
 	import ContractAgreementView from './ContractAgreementView.svelte';
 	import ContractExampleDataView from './ContractExampleDataView.svelte';
 	import ContractPatternsTab from './ContractPatternsTab.svelte';

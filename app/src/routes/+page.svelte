@@ -30,7 +30,7 @@
 	import ContractAgreementView from '$lib/components/canvas/ContractAgreementView.svelte';
 	import ContractExampleDataView from '$lib/components/canvas/ContractExampleDataView.svelte';
 	import ContractPatternsTab from '$lib/components/canvas/ContractPatternsTab.svelte';
-	import DictionaryTableView from './DictionaryTableView.svelte';
+	import DictionaryTableView from '$lib/components/canvas/DictionaryTableView.svelte';
 
 	let activeTab = $state<string>('contract');
 
