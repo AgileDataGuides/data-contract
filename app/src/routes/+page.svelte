@@ -21,6 +21,7 @@
 		deletePatternOverride
 	} from '$lib/stores/contract.svelte';
 	import { contractToContextPlane, contextPlaneToContract } from '$lib/converters/context-plane';
+	import { seedDemoIfEmpty } from '$lib/stores/demo-seed';
 	import { contractToRtf } from '$lib/converters/rtf';
 	import { contractToHtml } from '$lib/converters/word';
 	import { createStandaloneAdapter } from '$lib/adapters/standalone-adapter';
@@ -111,7 +112,14 @@
 	});
 	setContext('dataAdapter', adapter);
 
-	onMount(() => {
+	onMount(async () => {
+		// In demo mode (GitHub Pages static build), seed the example contracts
+		// into localStorage on first visit so the app starts populated. The
+		// seed module is imported only here in the SA entrypoint — not in the
+		// shared store — so the `$data/...` build-time imports stay out of the
+		// CP frontend's dependency graph.
+		const demo = (import.meta as { env?: { VITE_DEMO_MODE?: string } }).env?.VITE_DEMO_MODE === 'true';
+		if (demo) seedDemoIfEmpty();
 		initStore();
 	});
 

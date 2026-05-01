@@ -524,18 +524,13 @@ function lsSaveAll(models: Record<string, ContractModel>): void {
 	localStorage.setItem(LS_KEY, JSON.stringify(models));
 }
 
-// Seed JSONs imported at build time so the demo starts populated. The publish
-// flow copies these files from `../data/*.json` into the public repo (see
-// `scripts/publish-app.sh`'s data-file copy step) so the imports resolve at
-// build time both in the monorepo and in the standalone clone.
-import stripeCustomersSeed from '$data/stripe-customers-contract.json';
-import stripeSubscriptionsSeed from '$data/stripe-subscriptions-contract.json';
-import stripeInvoicesSeed from '$data/stripe-invoices-contract.json';
-const DEMO_SEED_MODELS: ContractModel[] = [
-	stripeCustomersSeed as unknown as ContractModel,
-	stripeSubscriptionsSeed as unknown as ContractModel,
-	stripeInvoicesSeed as unknown as ContractModel
-];
+// NOTE: demo-mode seed imports live in `./demo-seed.ts`, NOT here. That file
+// uses the `$data` Vite alias (only defined in the standalone app's own
+// vite.config.ts) and is imported only by the SA `+page.svelte`. The Context
+// Plane frontend transitively imports this store through the data-contract
+// package's converter exports, so any `$data/...` imports added at module
+// scope here would break the CP dev build with "Failed to resolve import".
+// Keep that aliased path confined to demo-seed.ts.
 
 // --- API helpers -----------------------------------------------------------
 
@@ -738,19 +733,13 @@ function makeExampleModel(): ContractModel {
 
 export async function initStore() {
 	if (store.loaded) return;
-	let models = await apiListModels();
+	const models = await apiListModels();
 
-	// In demo mode, if localStorage is empty seed all four example contracts
-	// (3 Stripe + 1 Receipts) so visitors land on a populated app instead of
-	// a single example. Normal SA install seeds just the example contract via
-	// the existing `models.length === 0` branch below.
-	if (DEMO_MODE && models.length === 0) {
-		for (const m of DEMO_SEED_MODELS) {
-			const migrated = migrateModel(JSON.parse(JSON.stringify(m)) as Record<string, unknown>);
-			await apiCreateModel(migrated);
-		}
-		models = await apiListModels();
-	}
+	// Demo-mode seeding (when localStorage is empty) is handled by the SA
+	// `+page.svelte` calling `seedDemoIfEmpty()` from `./demo-seed.ts` BEFORE
+	// initStore runs. The store stays generic so the CP frontend can import
+	// this module via the converter without pulling in the SA-only `$data`
+	// alias.
 
 	if (models.length === 0) {
 		const example = makeExampleModel();
