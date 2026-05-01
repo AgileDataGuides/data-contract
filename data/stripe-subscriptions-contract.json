@@ -258,7 +258,7 @@
   "deliveryTypes": [
     {
       "id": "delivery-snowflake",
-      "name": "Snowflake",
+      "name": "Google Cloud Storage (GCS)",
       "description": "Loaded into the `raw.stripe` schema in Snowflake every 1 hour for subscriptions (more frequent than customers because MRR drift is critical).",
       "typeKey": "snowflake"
     },

@@ -80,10 +80,26 @@
 		},
 		onCreateContract: async (name) => { await newModel(name); },
 		onDeleteContract: async (id) => { await deleteModel(id); },
-		onRenameContract: (name) => { renameModel(name); },
-		onUpdateDescription: (desc) => { updateDescription(desc); },
-		onAddItem: (entityLabel, name) => { addItem(entityLabel, name); },
-		onRemoveItem: (entityLabel, itemId) => { removeItem(entityLabel, itemId); },
+		onRenameContract: (name) => {
+			renameModel(name);
+			clearTimeout(orderSaveTimer);
+			orderSaveTimer = setTimeout(() => saveModel(), 300);
+		},
+		onUpdateDescription: (desc) => {
+			updateDescription(desc);
+			clearTimeout(orderSaveTimer);
+			orderSaveTimer = setTimeout(() => saveModel(), 300);
+		},
+		onAddItem: (entityLabel, name) => {
+			addItem(entityLabel, name);
+			clearTimeout(orderSaveTimer);
+			orderSaveTimer = setTimeout(() => saveModel(), 300);
+		},
+		onRemoveItem: (entityLabel, itemId) => {
+			removeItem(entityLabel, itemId);
+			clearTimeout(orderSaveTimer);
+			orderSaveTimer = setTimeout(() => saveModel(), 300);
+		},
 		onSwitchTo: async (id) => { await switchTo(id); },
 		onUpdateItemProperties: (sourceId, updates) => {
 			updateItemProperties(sourceId, updates);
@@ -167,8 +183,17 @@
 	}
 
 	function handleAddNode(entityLabel: string, name: string) {
-		if (entityLabel === 'contract_model') newModel(name);
-		else addItem(entityLabel, name);
+		if (entityLabel === 'contract_model') {
+			// newModel handles its own apiCreateModel — no extra save needed.
+			newModel(name);
+			return;
+		}
+		addItem(entityLabel, name);
+		// Persist the new card. Without this, addItem mutates the in-memory
+		// model and the card appears in the canvas, but the change never
+		// writes to disk so it disappears on reload.
+		clearTimeout(orderSaveTimer);
+		orderSaveTimer = setTimeout(() => saveModel(), 300);
 	}
 
 	function handleMetadataUpdate(updates: {
