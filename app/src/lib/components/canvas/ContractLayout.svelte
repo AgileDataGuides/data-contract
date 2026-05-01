@@ -5,10 +5,10 @@
 	import ContractExampleDataView from './ContractExampleDataView.svelte';
 	import ContractPatternsTab from './ContractPatternsTab.svelte';
 	import PatternValueDropdown from './PatternValueDropdown.svelte';
-	import type { ContextNode, ContextLink } from '$lib/types/shared';
-	import type { DataAdapter } from '$lib/types/shared';
+	import type { ContextNode, ContextLink } from '$lib/cp-shared';
+	import type { DataAdapter } from '$lib/cp-shared';
 	import type { ExampleDataRow } from '../../types';
-	import { getNodeLabels } from '$lib/types/shared';
+	import { getNodeLabels } from '$lib/cp-shared';
 	import { listDeliveryTypeLabels } from '$lib/shared-data/delivery-types';
 	import { getPattern, getPatternValues } from '$lib/shared-data/patterns';
 	import { getContext, type Snippet } from 'svelte';

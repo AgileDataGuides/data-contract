@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
-	import type { ContextNode, ContextLink, DataAdapter } from '$lib/types/shared';
-	import { getNodeLabels } from '$lib/types/shared';
+	import type { ContextNode, ContextLink, DataAdapter } from '$lib/cp-shared';
+	import { getNodeLabels } from '$lib/cp-shared';
 
 	let {
 		nodes,

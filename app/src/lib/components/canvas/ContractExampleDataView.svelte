@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ContextNode, ContextLink } from '$lib/types/shared';
+	import type { ContextNode, ContextLink } from '$lib/cp-shared';
 	import { contextPlaneToContract } from '../../converters/context-plane';
 	import type { ExampleDataRow } from '../../types';
 

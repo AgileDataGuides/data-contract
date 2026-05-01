@@ -24,8 +24,8 @@
 	 * All mutations go through the injected DataAdapter (standalone or CP).
 	 */
 	import { getContext } from 'svelte';
-	import type { DataAdapter, ContextNode, ContextLink } from '$lib/types/shared';
-	import { getNodeLabels } from '$lib/types/shared';
+	import type { DataAdapter, ContextNode, ContextLink } from '$lib/cp-shared';
+	import { getNodeLabels } from '$lib/cp-shared';
 	import {
 		getPatternsForCanvas,
 		rawLookups as staticLookups,

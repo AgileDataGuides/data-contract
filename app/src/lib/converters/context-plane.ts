@@ -2,7 +2,7 @@
  * Bidirectional converter between Data Contract v2.1 (AgileData-native) JSON
  * and Context Plane { nodes, links } graph format.
  */
-import type { ContextNode, ContextLink } from '$lib/types/shared';
+import type { ContextNode, ContextLink } from '$lib/cp-shared';
 import type {
 	ContractModel,
 	ContractItem,

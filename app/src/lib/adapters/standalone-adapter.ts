@@ -1,4 +1,4 @@
-import type { DataAdapter, ContextNode, ContextLink } from '$lib/types/shared';
+import type { DataAdapter, ContextNode, ContextLink } from '$lib/cp-shared';
 import type { ContractModel, ContractPatternType, ContractPatternOverride } from '$lib/types';
 import { contractToContextPlane } from '$lib/converters/context-plane';
 
