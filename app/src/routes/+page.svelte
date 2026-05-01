@@ -18,7 +18,8 @@
 		migrateModel,
 		setPatternTypes,
 		setPatternOverride,
-		deletePatternOverride
+		deletePatternOverride,
+		reorderItem
 	} from '$lib/stores/contract.svelte';
 	import { contractToContextPlane, contextPlaneToContract } from '$lib/converters/context-plane';
 	import { seedDemoIfEmpty } from '$lib/stores/demo-seed';
@@ -106,6 +107,13 @@
 		},
 		onDeletePatternOverride: (patternId) => {
 			deletePatternOverride(patternId);
+			clearTimeout(orderSaveTimer);
+			orderSaveTimer = setTimeout(() => saveModel(), 300);
+		},
+		onReorderItem: (sourceId, newOrder) => {
+			reorderItem(sourceId, newOrder);
+			// Drag-drop fires N updateNode calls in sequence (one per affected
+			// card). Debounce so we save once after the whole reorder lands.
 			clearTimeout(orderSaveTimer);
 			orderSaveTimer = setTimeout(() => saveModel(), 300);
 		}

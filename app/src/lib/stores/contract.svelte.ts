@@ -1073,6 +1073,33 @@ export function setExampleData(rows: ExampleDataRow[]) {
 // adapter routes those calls into these mutators so the changes land on the
 // model and survive page reload.
 
+/**
+ * Move an item to a new position within its containing array, given its raw
+ * ContractItem id and the new 1-based order. Used by the shared
+ * CanvasSection's drag-drop reorder. The converter emits `order: i + 1` per
+ * item, so reorder requests come in 1-based — we splice to slot `order - 1`.
+ *
+ * Searches all known array fields for the item; no entity-label mapping
+ * needed. No-op if the item isn't found or the slot doesn't change.
+ */
+export function reorderItem(itemId: string, newOrder: number) {
+	const arrays: (keyof ContractModel)[] = [
+		'team', 'personas', 'columns', 'glossaryTerms',
+		'deliveryTypes', 'trustRules', 'dataSyncs', 'lineage'
+	];
+	for (const field of arrays) {
+		const arr = store.model[field] as ContractItem[];
+		const fromIdx = arr.findIndex((i) => i.id === itemId);
+		if (fromIdx === -1) continue;
+		const toIdx = Math.max(0, Math.min(arr.length - 1, newOrder - 1));
+		if (fromIdx === toIdx) return;
+		const [moved] = arr.splice(fromIdx, 1);
+		arr.splice(toIdx, 0, moved);
+		markDirty();
+		return;
+	}
+}
+
 /** Replace the per-contract list of pattern types. `null` = use static defaults. */
 export function setPatternTypes(types: ContractPatternType[] | null) {
 	store.model.patternTypes = types;

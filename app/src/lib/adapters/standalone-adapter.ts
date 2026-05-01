@@ -44,6 +44,9 @@ export function createStandaloneAdapter(callbacks: {
 	onSetPatternOverride?: (patternId: string, override: ContractPatternOverride) => void;
 	/** Optional: remove a pattern override (revert to static defaults for that pattern). */
 	onDeletePatternOverride?: (patternId: string) => void;
+	/** Optional: reorder an item within its containing array. Called when the
+	 *  shared CanvasSection drag-drop emits `properties.order` updates. */
+	onReorderItem?: (sourceId: string, newOrder: number) => void;
 }): DataAdapter {
 	function getSnapshot() {
 		return contractToContextPlane(callbacks.getModel());
@@ -159,10 +162,18 @@ export function createStandaloneAdapter(callbacks: {
 				if (updates.description !== undefined) nameOrDesc.description = updates.description;
 				if (Object.keys(nameOrDesc).length > 0) callbacks.onUpdateNode(sourceId, nameOrDesc);
 
-				if (updates.properties && callbacks.onUpdateItemProperties) {
-					// Strip out non-editable system properties
-					const { canvas: _c, sourceId: _s, order: _o, ...rest } = updates.properties as Record<string, unknown>;
-					if (Object.keys(rest).length > 0) callbacks.onUpdateItemProperties(sourceId, rest);
+				if (updates.properties) {
+					const props = updates.properties as Record<string, unknown>;
+					// Drag-drop reorder: shared CanvasSection emits per-card
+					// `properties.order` updates with the new 1-based slot.
+					if (typeof props.order === 'number' && callbacks.onReorderItem) {
+						callbacks.onReorderItem(sourceId, props.order);
+					}
+					if (callbacks.onUpdateItemProperties) {
+						// Strip system properties + `order` (handled above) before forwarding.
+						const { canvas: _c, sourceId: _s, order: _o, ...rest } = props;
+						if (Object.keys(rest).length > 0) callbacks.onUpdateItemProperties(sourceId, rest);
+					}
 				}
 			}
 
