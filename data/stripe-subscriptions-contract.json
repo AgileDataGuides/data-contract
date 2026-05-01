@@ -34,9 +34,9 @@
     "All history"
   ],
   "dataAsset": {
-    "id": "raw.stripe.subscriptions",
+    "id": "global_d-c82489ba",
     "name": "raw.stripe.subscriptions",
-    "description": "Snapshot of every Stripe Subscription with the full lifecycle history (status transitions, plan changes, cancellations). One row per subscription per change event."
+    "description": ""
   },
   "team": [
     {

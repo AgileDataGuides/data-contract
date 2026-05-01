@@ -601,11 +601,11 @@
 					{/if}
 				</CanvasAreaShell>
 
-				<!-- Row 2 Main: Schema / Columns | Trust Rules | Data Sync | Glossary Terms -->
-				<!-- Schema / Columns — cards intentionally name-only (hideBadges). Full column
-				     metadata (data type, PK/UNIQUE/REQ/classification) is surfaced in the detail
-				     popup and in the Agreement view, keeping the Contract grid uncluttered. -->
-				<CanvasSection title="Schema / Columns" entityLabel="dict_column" nodes={getScoped('dict_column')} color={COLORS.columns} hideBadges {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<!-- Row 2 Main: Details / Schema / Fields | Trust Rules | Data Sync | Glossary Terms -->
+				<!-- Details / Schema / Fields — cards intentionally name-only (hideBadges). Full
+				     column metadata (data type, PK/UNIQUE/REQ/classification) is surfaced in the
+				     detail popup and in the Agreement view, keeping the Contract grid uncluttered. -->
+				<CanvasSection title="Details / Schema / Fields" entityLabel="dict_column" nodes={getScoped('dict_column')} color={COLORS.columns} hideBadges {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 				<CanvasSection title="Trust Rules" entityLabel="global_policy" nodes={getScoped('global_policy')} color={COLORS.trustRules} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 				<CanvasSection title="Data Sync" entityLabel="global_data_sync" nodes={getScoped('global_data_sync')} color={COLORS.dataSyncs} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 				<CanvasSection title="Glossary Terms" entityLabel="global_glossary_term" nodes={getScoped('global_glossary_term')} color={COLORS.glossaryTerms} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
@@ -619,7 +619,11 @@
 				     their own; the store resolves the label to a catalog typeKey for round-tripping
 				     through the Bitol (ODCS) language. -->
 				<CanvasSection title="Delivery / Infrastructure" entityLabel="global_delivery_type" nodes={getScoped('global_delivery_type')} color={COLORS.deliveryTypes} addSuggestions={deliveryTypeLabels} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
-				<CanvasSection title="Lineage" entityLabel="global_data_asset" nodes={lineageNodes} color={COLORS.lineage} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<!-- Lineage uses entityLabel="lineage_source" so the + add path lands the
+				     new item in the `lineage` array (not the singular `dataAsset`).
+				     The store builds it as a LineageItem with provType: 'entity' by default;
+				     the user can change provType later via the detail / edit modal. -->
+				<CanvasSection title="Lineage" entityLabel="lineage_source" nodes={lineageNodes} color={COLORS.lineage} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 			</div>
 		</div>
 	{:else}

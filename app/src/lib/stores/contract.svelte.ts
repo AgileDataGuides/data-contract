@@ -939,6 +939,25 @@ function buildItem(entityLabel: string, name: string): ContractItem {
 		return { ...base, typeKey } as ContractItem & { typeKey: string };
 	}
 
+	if (
+		entityLabel === 'lineage_source' ||
+		entityLabel === 'lineage_enrichment' ||
+		entityLabel === 'lineage_downstream'
+	) {
+		// LineageItem requires a provType — without it, the converter would
+		// create the node but skip the `was_derived_from` / `was_generated_by`
+		// / `was_attributed_to` link to the contract's data asset, and the
+		// Lineage CanvasSection (which filters by those links) would hide
+		// the card. Default to 'entity' (the most common starting point — a
+		// new upstream dataset). The user can change provType later via the
+		// detail / edit modal.
+		const provType: ProvType =
+			entityLabel === 'lineage_enrichment' ? 'activity' :
+			entityLabel === 'lineage_downstream' ? 'entity' :
+			'entity';
+		return { ...base, provType, upstreamIds: [] } as LineageItem;
+	}
+
 	return base;
 }
 
