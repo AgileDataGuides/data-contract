@@ -24,7 +24,7 @@
     "master-data"
   ],
   "changeDetection": [
-    "Change Data Capture (Database Logs)"
+    "Change Data Capture (Other)"
   ],
   "retentionPeriod": [
     "7 years"

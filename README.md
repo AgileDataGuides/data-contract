@@ -4,6 +4,11 @@ Define data contracts for your data assets — the agreement between the team th
 
 An [AgileDataGuides](https://agiledataguides.com/agiledata-templates/) Pattern Template app.
 
+## ALPHA VERSION
+
+This is the initial stubs version of the app, publishing it so I can collaborate with a few people on what the Data Contract app should actually look and behave like.
+
+
 ## What It Does
 
 A Data Contract is an explicit, machine-readable agreement covering everything a consumer needs to depend on a dataset:
