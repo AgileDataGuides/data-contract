@@ -34,7 +34,7 @@
   ],
   "dataAsset": {
     "id": "raw.stripe.customers",
-    "name": "raw.stripe.customers",
+    "name": "landing.stripe.customers",
     "description": "Daily snapshot of Stripe Customer objects with webhook-driven incremental updates layered on top. One row per customer per change event."
   },
   "team": [
@@ -185,16 +185,22 @@
   ],
   "deliveryTypes": [
     {
-      "id": "delivery-snowflake",
-      "name": "Google Cloud Storage (GCS)",
-      "description": "Loaded into the `raw.stripe` schema in Snowflake via Fivetran every 6 hours.",
-      "typeKey": "snowflake"
-    },
-    {
       "id": "delivery-stripe-api",
       "name": "Stripe API",
       "description": "Source system — REST API at https://api.stripe.com/v1/customers plus webhook events.",
       "typeKey": "rest-api"
+    },
+    {
+      "id": "global_d-06081e8f",
+      "name": "JSON Files",
+      "description": "",
+      "typeKey": "custom"
+    },
+    {
+      "id": "delivery-snowflake",
+      "name": "Google Cloud Storage (GCS)",
+      "description": "Loaded into the `raw.stripe` schema in Snowflake via Fivetran every 6 hours.",
+      "typeKey": "snowflake"
     }
   ],
   "trustRules": [
@@ -290,6 +296,20 @@
         "lin-stripe-api"
       ],
       "role": "ingestion"
+    },
+    {
+      "id": "lineage_-067bb572",
+      "name": "Google Cloud Storage (GCS)",
+      "description": "",
+      "provType": "entity",
+      "upstreamIds": []
+    },
+    {
+      "id": "lineage_-dd83df1e",
+      "name": "Google BigQuery",
+      "description": "",
+      "provType": "entity",
+      "upstreamIds": []
     }
   ],
   "exampleData": [

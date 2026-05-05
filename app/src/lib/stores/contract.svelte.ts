@@ -578,6 +578,19 @@ async function apiDeleteModel(id: string): Promise<void> {
 	await fetch(`/api/models/${id}`, { method: 'DELETE' });
 }
 
+async function apiGetModel(id: string): Promise<ContractModel | null> {
+	if (DEMO_MODE) {
+		const all = lsGetAll();
+		return all[id] ?? null;
+	}
+	const res = await fetch(`/api/models/${id}`);
+	if (!res.ok) {
+		console.error(`apiGetModel: GET /api/models/${id} returned ${res.status}`);
+		return null;
+	}
+	return res.json();
+}
+
 // --- Example model (v2.1, AgileData-native) --------------------------------
 
 function makeExampleModel(): ContractModel {
@@ -768,18 +781,19 @@ export async function switchTo(id: string) {
 	if (store.dirty) {
 		try { await saveModel(); } catch { /* best effort */ }
 	}
-	const res = await fetch(`/api/models/${id}`);
-	if (res.ok) {
-		const loaded = await res.json();
-		const migrated = migrateModel(loaded);
-		if (loaded.version !== '2.1') {
-			await apiSaveModel(migrated);
-		}
-		store.model = migrated;
-		store.dirty = false;
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('dc-current-id', id);
-		}
+	const loaded = await apiGetModel(id);
+	if (!loaded) {
+		console.warn(`switchTo: contract '${id}' not found`);
+		return;
+	}
+	const migrated = migrateModel(loaded as Record<string, unknown>);
+	if ((loaded as { version?: string }).version !== '2.1') {
+		await apiSaveModel(migrated);
+	}
+	store.model = migrated;
+	store.dirty = false;
+	if (typeof window !== 'undefined') {
+		localStorage.setItem('dc-current-id', id);
 	}
 }
 

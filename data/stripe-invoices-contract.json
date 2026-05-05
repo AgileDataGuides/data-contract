@@ -34,7 +34,7 @@
   ],
   "dataAsset": {
     "id": "raw.stripe.invoices",
-    "name": "raw.stripe.invoices",
+    "name": "landing.stripe.invoices",
     "description": "Every invoice issued by Stripe — open, paid, void or uncollectible — with full status history. One row per invoice per state change."
   },
   "team": [
@@ -261,16 +261,22 @@
   ],
   "deliveryTypes": [
     {
-      "id": "delivery-snowflake",
-      "name": "Google Cloud Storage (GCS)",
-      "description": "Loaded into the `raw.stripe` schema in Snowflake every 1 hour.",
-      "typeKey": "snowflake"
-    },
-    {
       "id": "delivery-stripe-api",
       "name": "Stripe API",
       "description": "Source — REST API at https://api.stripe.com/v1/invoices plus webhook events.",
       "typeKey": "rest-api"
+    },
+    {
+      "id": "global_d-cfaaecf7",
+      "name": "JSON Files",
+      "description": "",
+      "typeKey": "custom"
+    },
+    {
+      "id": "delivery-snowflake",
+      "name": "Google Cloud Storage (GCS)",
+      "description": "Loaded into the `raw.stripe` schema in Snowflake every 1 hour.",
+      "typeKey": "snowflake"
     }
   ],
   "trustRules": [
@@ -398,6 +404,20 @@
         "lin-stripe-api"
       ],
       "role": "ingestion"
+    },
+    {
+      "id": "lineage_-a2050d56",
+      "name": "Google Cloud Storage (GCS)",
+      "description": "",
+      "provType": "entity",
+      "upstreamIds": []
+    },
+    {
+      "id": "lineage_-0806ea77",
+      "name": "Google BigQuery",
+      "description": "",
+      "provType": "entity",
+      "upstreamIds": []
     }
   ],
   "exampleData": [

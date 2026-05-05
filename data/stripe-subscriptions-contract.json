@@ -34,9 +34,9 @@
     "All history"
   ],
   "dataAsset": {
-    "id": "global_d-c82489ba",
-    "name": "raw.stripe.subscriptions",
-    "description": ""
+    "id": "raw.stripe.subscriptions",
+    "name": "landing.stripe.subscriptions",
+    "description": "Snapshot of every Stripe Subscription with the full lifecycle history (status transitions, plan changes, cancellations). One row per subscription per change event."
   },
   "team": [
     {
@@ -257,16 +257,22 @@
   ],
   "deliveryTypes": [
     {
-      "id": "delivery-snowflake",
-      "name": "Google Cloud Storage (GCS)",
-      "description": "Loaded into the `raw.stripe` schema in Snowflake every 1 hour for subscriptions (more frequent than customers because MRR drift is critical).",
-      "typeKey": "snowflake"
-    },
-    {
       "id": "delivery-stripe-api",
       "name": "Stripe API",
       "description": "Source — REST API at https://api.stripe.com/v1/subscriptions plus webhook events.",
       "typeKey": "rest-api"
+    },
+    {
+      "id": "global_d-84dae000",
+      "name": "JSON Files",
+      "description": "",
+      "typeKey": "custom"
+    },
+    {
+      "id": "delivery-snowflake",
+      "name": "Google Cloud Storage (GCS)",
+      "description": "Loaded into the `raw.stripe` schema in Snowflake every 1 hour for subscriptions (more frequent than customers because MRR drift is critical).",
+      "typeKey": "snowflake"
     }
   ],
   "trustRules": [
@@ -378,6 +384,20 @@
         "lin-stripe-api"
       ],
       "role": "ingestion"
+    },
+    {
+      "id": "lineage_-08cc6e15",
+      "name": "Google Cloud Storage (GCS)",
+      "description": "",
+      "provType": "entity",
+      "upstreamIds": []
+    },
+    {
+      "id": "lineage_-69a8d6ab",
+      "name": "Google BigQuery",
+      "description": "",
+      "provType": "entity",
+      "upstreamIds": []
     },
     {
       "id": "lin-mrr-calc",
