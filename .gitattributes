@@ -12,6 +12,16 @@ app/src/lib/cp-shared.ts linguist-vendored=true
 app/src/lib/shared-data/** linguist-vendored=true
 app/src/lib/languages/** linguist-vendored=true
 
+# Format adapters (CP graph ↔ contract, Word, RTF) — translation layer
+# parallel to languages/, same scaffolding character. Not the heart of
+# "what is a data contract".
+app/src/lib/converters/** linguist-vendored=true
+
+# Adapter scaffolding — wraps the native store behind the shared
+# DataAdapter interface. Mechanical glue from the workspace pattern,
+# not the app's character.
+app/src/lib/adapters/** linguist-vendored=true
+
 # Legacy path from older publishes (kept here so a re-publish over an
 # existing checkout that still has the old file in git history doesn't
 # falsely classify it). Safe to remove once no public repo retains it.
