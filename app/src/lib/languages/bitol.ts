@@ -271,6 +271,10 @@ function exportAll(data: GraphData, rootNodeId?: string): string {
 	}
 
 	// --- Quality rules ---
+	// In v2.2 the `column` field is gone from TrustRule; per-column attachment
+	// is encoded as `validates_column` links from rule nodes to column nodes.
+	// Walk those links to figure out the ODCS `element` (column name) per rule.
+	// Legacy graphs that still carry `p.column` are honoured as a fallback.
 	const qualityLinks = linksFrom(links, root.id, 'has_quality_rule');
 	if (qualityLinks.length > 0) {
 		odcs.quality = qualityLinks
@@ -290,19 +294,41 @@ function exportAll(data: GraphData, rootNodeId?: string): string {
 				// `description` so the rule statement isn't lost on export.
 				const ruleText = (p.rule as string | undefined)?.trim();
 				const description = n.description || ruleText || undefined;
-				const rule: Record<string, unknown> = stripEmpty({
-					name: n.name,
-					description,
-					type: categoryOrType.toLowerCase(),
-					element: (p.column as string) || undefined
-				});
-				if (threshold !== undefined && threshold !== '') {
-					// Try to parse as number, otherwise keep as string
-					const num = Number(threshold);
-					rule[odcsOperatorKey] = isNaN(num) ? threshold : num;
+
+				// Resolve the column the rule applies to. v2.2 path: follow
+				// `validates_column` links from this rule to a `dict_column`
+				// node. Multiple attached columns → emit one rule per column
+				// (Bitol/ODCS rules are scoped to a single element).
+				const colLinks = links.filter(
+					(l) => l.label === 'validates_column' && l.source_id === n.id
+				);
+				const colNames: string[] = [];
+				for (const cl of colLinks) {
+					const colNode = findNode(nodes, cl.destination_id);
+					if (colNode) colNames.push(colNode.name);
 				}
-				return rule;
-			});
+				// Legacy fallback when no validates_column links present
+				if (colNames.length === 0 && p.column && p.column !== '*') {
+					colNames.push(p.column as string);
+				}
+				// Table-level fallback (no column) → undefined element
+				const elements: (string | undefined)[] = colNames.length > 0 ? colNames : [undefined];
+
+				return elements.map((element) => {
+					const rule: Record<string, unknown> = stripEmpty({
+						name: n.name,
+						description,
+						type: categoryOrType.toLowerCase(),
+						element
+					});
+					if (threshold !== undefined && threshold !== '') {
+						const num = Number(threshold);
+						rule[odcsOperatorKey] = isNaN(num) ? threshold : num;
+					}
+					return rule;
+				});
+			})
+			.flat();
 	}
 
 	// --- SLA properties ---

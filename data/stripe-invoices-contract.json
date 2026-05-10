@@ -1,5 +1,5 @@
 {
-  "version": "2.1",
+  "version": "2.2",
   "id": "stripe-invoices-contract",
   "name": "Stripe Invoices",
   "description": "Data contract for the Stripe Invoices object (`/v1/invoices` API). Each row is a billing event — the canonical record of revenue billed (and either paid, outstanding or written off). This contract underpins the GAAP-aligned recognised revenue calculation, AR aging, and dunning workflow. Sourced via the Stripe REST API and webhook stream (`invoice.*` events).",
@@ -477,5 +477,21 @@
     }
   ],
   "patternTypes": null,
-  "patternOverrides": {}
+  "patternOverrides": {},
+  "columnTrustRules": {
+    "dc-column-id": [
+      "tr-id-not-null"
+    ],
+    "dc-column-customer": [
+      "tr-customer-fk"
+    ],
+    "dc-column-subscription": [
+      "tr-id-not-null"
+    ]
+  },
+  "columnGlossaryTerms": {
+    "dc-column-id": [
+      "term-recognised-revenue"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "version": "2.1",
+  "version": "2.2",
   "id": "stripe-customers-contract",
   "name": "Stripe Customers",
   "description": "Data contract for the Stripe Customers object (`/v1/customers` API). The Customer is the master record every paying SaaS account is anchored to — every subscription, invoice and charge in Stripe links back to a Customer ID. Sourced via the Stripe REST API and webhook stream (`customer.created`, `customer.updated`, `customer.deleted`).",
@@ -78,7 +78,8 @@
       "required": true,
       "unique": true,
       "primaryKey": true,
-      "classification": "internal"
+      "classification": "internal",
+      "businessRule": ""
     },
     {
       "id": "email",
@@ -351,5 +352,11 @@
     }
   ],
   "patternTypes": null,
-  "patternOverrides": {}
+  "patternOverrides": {},
+  "columnTrustRules": {},
+  "columnGlossaryTerms": {
+    "dc-column-id": [
+      "term-customer"
+    ]
+  }
 }

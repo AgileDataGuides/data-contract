@@ -19,6 +19,8 @@
 		setPatternTypes,
 		setPatternOverride,
 		deletePatternOverride,
+		setColumnTrustRules,
+		setColumnGlossaryTerms,
 		reorderItem
 	} from '$lib/stores/contract.svelte';
 	import { contractToContextPlane, contextPlaneToContract } from '$lib/converters/context-plane';
@@ -32,11 +34,19 @@
 	import ContractAgreementView from '$lib/components/canvas/ContractAgreementView.svelte';
 	import ContractExampleDataView from '$lib/components/canvas/ContractExampleDataView.svelte';
 	import ContractPatternsTab from '$lib/components/canvas/ContractPatternsTab.svelte';
+	import ContractTrustRulesTab from '$lib/components/canvas/ContractTrustRulesTab.svelte';
 	import DictionaryTableView from '$lib/components/canvas/DictionaryTableView.svelte';
 	import CardEditModal from '$lib/components/canvas/CardEditModal.svelte';
 	import type { ContextNode } from '$lib/cp-shared';
 
-	let activeTab = $state<string>('contract');
+	let activeTab = $state<string>('agreement');
+
+	// DIAGNOSTIC: log activeTab changes + capture stack so we can see what's
+	// flipping it back to 'contract' after a Trust Rule / Glossary Term cell
+	// click. Remove once the culprit is identified.
+	$effect(() => {
+		console.log('[DC] activeTab changed to:', activeTab, new Error().stack);
+	});
 
 	// Model management (Tier 1 — dark App Header)
 	let showSwitcher = $state(false);
@@ -486,7 +496,29 @@
 		{#if activeTab === 'agreement'}
 			<ContractAgreementView nodes={snapshot.nodes} links={snapshot.links} />
 		{:else if activeTab === 'dictionary'}
-			<DictionaryTableView nodes={dictionarySubgraph.nodes} links={dictionarySubgraph.links} editable />
+			<DictionaryTableView
+				nodes={dictionarySubgraph.nodes}
+				links={dictionarySubgraph.links}
+				editable
+				trustRules={store.model.trustRules}
+				columnTrustRules={store.model.columnTrustRules ?? {}}
+				onSetColumnTrustRules={(columnId, ruleIds) => {
+					setColumnTrustRules(columnId, ruleIds);
+					clearTimeout(orderSaveTimer);
+					orderSaveTimer = setTimeout(() => saveModel(), 300);
+				}}
+				glossaryTermsCatalog={store.model.glossaryTerms}
+				columnGlossaryTerms={store.model.columnGlossaryTerms ?? {}}
+				onSetColumnGlossaryTerms={(columnId, termIds) => {
+					setColumnGlossaryTerms(columnId, termIds);
+					clearTimeout(orderSaveTimer);
+					orderSaveTimer = setTimeout(() => saveModel(), 300);
+				}}
+			/>
+		{:else if activeTab === 'trust-rules'}
+			<div class="flex-1 overflow-auto py-4">
+				<ContractTrustRulesTab />
+			</div>
 		{:else if activeTab === 'example-data'}
 			<ContractExampleDataView
 				nodes={snapshot.nodes}

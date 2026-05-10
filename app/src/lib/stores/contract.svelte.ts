@@ -324,7 +324,7 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 		})) as ColumnItem[];
 		return {
 			...(v2 as unknown as ContractModel),
-			version: '2.1',
+			version: '2.2',
 			status: normaliseStatus(v2.status),
 			domain,
 			informationProduct,
@@ -335,6 +335,8 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 			historyWindow: normaliseHistoryWindow(v2.historyWindow ?? v2.dataWindow),
 			retentionPeriod: normaliseStringArray(v2.retentionPeriod),
 			trustRules,
+			columnTrustRules: {},
+		columnGlossaryTerms: {},
 			dataSyncs,
 			glossaryTerms,
 			columns,
@@ -345,9 +347,14 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 		};
 	}
 
-	// Already v2.1 — still accept legacy field names in case an older v2.1
-	// export floated around during the renames. Normalise status + lineage too.
-	if (currentVersion === '2.1') {
+	// v2.1 → v2.2: Trust Rules became a column-agnostic catalog with separate
+	// per-column attachment via `columnTrustRules`. Per the user's policy we do
+	// NOT auto-attach existing TR.column values (they reassign manually). The
+	// column field is kept on existing rules for reference; columnTrustRules
+	// starts empty.
+	// Already-v2.2 models flow through this branch too — same normalisations
+	// apply, and the existing `columnTrustRules` is preserved.
+	if (currentVersion === '2.1' || currentVersion === '2.2') {
 		const v21 = m as Record<string, unknown>;
 		const glossaryTerms = (v21.glossaryTerms as ContractItem[] | undefined)
 			?? (v21.references as ContractItem[] | undefined)
@@ -366,6 +373,7 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 		const trustRules21 = rawRules21.map(normaliseTrustRule);
 		return {
 			...(v21 as unknown as ContractModel),
+			version: '2.2',
 			status: normaliseStatus(v21.status as string),
 			domain,
 			informationProduct,
@@ -375,6 +383,8 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 			glossaryTerms,
 			columns,
 			trustRules: trustRules21,
+			columnTrustRules: (v21.columnTrustRules as Record<string, string[]> | undefined) ?? {},
+			columnGlossaryTerms: (v21.columnGlossaryTerms as Record<string, string[]> | undefined) ?? {},
 			lineage: normaliseLineage(v21.lineage),
 			exampleData: normaliseExampleData(v21.exampleData),
 			patternTypes: (v21.patternTypes as ContractPatternType[] | undefined) ?? null,
@@ -437,7 +447,7 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 	});
 
 	return {
-		version: '2.1',
+		version: '2.2',
 		id: (old.id as string) || 'imported',
 		name: (old.name as string) || 'Imported Contract',
 		description: (old.description as string) || '',
@@ -455,6 +465,8 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 		glossaryTerms,
 		deliveryTypes: (old.deliveryTypes as ContractItem[] | undefined) || [],
 		trustRules,
+		columnTrustRules: {},
+		columnGlossaryTerms: {},
 		dataSyncs,
 		lineage: normaliseLineage(old.lineage),
 		exampleData: normaliseExampleData(old.exampleData),
@@ -467,7 +479,7 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 
 function emptyModel(): ContractModel {
 	return {
-		version: '2.1',
+		version: '2.2',
 		id: 'empty',
 		name: 'Loading...',
 		description: '',
@@ -485,6 +497,8 @@ function emptyModel(): ContractModel {
 		glossaryTerms: [],
 		deliveryTypes: [],
 		trustRules: [],
+		columnTrustRules: {},
+		columnGlossaryTerms: {},
 		dataSyncs: [],
 		lineage: [],
 		exampleData: [],
@@ -595,7 +609,7 @@ async function apiGetModel(id: string): Promise<ContractModel | null> {
 
 function makeExampleModel(): ContractModel {
 	return {
-		version: '2.1',
+		version: '2.2',
 		id: 'example-contract',
 		name: 'Customer Orders Contract',
 		description: 'Data contract for the customer orders dataset',
@@ -690,24 +704,28 @@ function makeExampleModel(): ContractModel {
 			{ id: 'dt-002', name: 'Amazon S3', description: 'Raw Parquet landing zone (s3://acme-raw/orders/)', typeKey: 's3' } as ContractItem & { typeKey: string },
 			{ id: 'dt-003', name: 'Looker', description: 'Published to Sales Analytics Looker dashboard', typeKey: 'looker' } as ContractItem & { typeKey: string }
 		],
+		// Trust Rule catalog — column-agnostic. Per-column attachment lives in
+		// `columnTrustRules` below.
 		trustRules: [
 			{
 				id: 'tr-001',
 				name: 'order_id completeness',
 				description: 'order_id must never be null',
 				category: 'Completeness',
-				rule: 'order_id is non-null on at least 99.5% of rows',
-				column: 'order_id'
+				rule: 'order_id is non-null on at least 99.5% of rows'
 			},
 			{
 				id: 'tr-002',
 				name: 'total_amount non-negative',
 				description: 'order totals must be non-negative',
 				category: 'Accuracy',
-				rule: 'total_amount >= 0 on at least 99.5% of rows',
-				column: 'total_amount'
+				rule: 'total_amount >= 0 on at least 99.5% of rows'
 			}
 		],
+		columnTrustRules: {
+			'col-001': ['tr-001'],   // order_id ← order_id completeness
+			'col-004': ['tr-002']    // total_amount ← non-negative
+		},
 		dataSyncs: [
 			{
 				id: 'ds-001',
@@ -766,7 +784,7 @@ export async function initStore() {
 		const selected = found || models[0];
 		const migrated = migrateModel(selected as unknown as Record<string, unknown>);
 		// Persist migration if the model was at an older version
-		if ((selected as { version?: string }).version !== '2.1') {
+		if ((selected as { version?: string }).version !== '2.2') {
 			await apiSaveModel(migrated);
 		}
 		store.model = migrated;
@@ -787,7 +805,7 @@ export async function switchTo(id: string) {
 		return;
 	}
 	const migrated = migrateModel(loaded as Record<string, unknown>);
-	if ((loaded as { version?: string }).version !== '2.1') {
+	if ((loaded as { version?: string }).version !== '2.2') {
 		await apiSaveModel(migrated);
 	}
 	store.model = migrated;
@@ -815,7 +833,7 @@ export async function newModel(name: string) {
 	const existingIds = store.savedList.map((s) => s.id);
 	const id = slugify(name, existingIds);
 	const newM: ContractModel = {
-		version: '2.1',
+		version: '2.2',
 		id,
 		name,
 		description: '',
@@ -833,6 +851,8 @@ export async function newModel(name: string) {
 		glossaryTerms: [],
 		deliveryTypes: [],
 		trustRules: [],
+		columnTrustRules: {},
+		columnGlossaryTerms: {},
 		dataSyncs: [],
 		lineage: [],
 		exampleData: []
@@ -1004,6 +1024,104 @@ export function removeItem(entityLabel: string, itemId: string) {
 		const arr = store.model[mapping.field] as ContractItem[];
 		const idx = arr.findIndex((i) => i.id === itemId);
 		if (idx >= 0) arr.splice(idx, 1);
+	}
+
+	// Cascade: removing a column drops its columnTrustRules + columnGlossaryTerms
+	// entry; removing a trust rule / glossary term pulls it out of every column's
+	// attachment list.
+	if (mapping.field === 'columns') {
+		if (store.model.columnTrustRules) delete store.model.columnTrustRules[itemId];
+		if (store.model.columnGlossaryTerms) delete store.model.columnGlossaryTerms[itemId];
+	}
+	if (mapping.field === 'trustRules' && store.model.columnTrustRules) {
+		for (const colId of Object.keys(store.model.columnTrustRules)) {
+			const filtered = store.model.columnTrustRules[colId].filter((rid) => rid !== itemId);
+			if (filtered.length === 0) {
+				delete store.model.columnTrustRules[colId];
+			} else {
+				store.model.columnTrustRules[colId] = filtered;
+			}
+		}
+	}
+	if (mapping.field === 'glossaryTerms' && store.model.columnGlossaryTerms) {
+		for (const colId of Object.keys(store.model.columnGlossaryTerms)) {
+			const filtered = store.model.columnGlossaryTerms[colId].filter((tid) => tid !== itemId);
+			if (filtered.length === 0) {
+				delete store.model.columnGlossaryTerms[colId];
+			} else {
+				store.model.columnGlossaryTerms[colId] = filtered;
+			}
+		}
+	}
+
+	markDirty();
+}
+
+/**
+ * Set the Trust Rule attachments for a single column. Empty array clears
+ * the entry from `columnTrustRules`. Direct parallel to the Checklist's
+ * `setCellPolicies(layerIndex, patternId, policyIds)`.
+ */
+export function setColumnTrustRules(columnId: string, ruleIds: string[]) {
+	if (!store.model.columnTrustRules) {
+		store.model.columnTrustRules = {};
+	}
+	if (ruleIds.length > 0) {
+		store.model.columnTrustRules[columnId] = ruleIds;
+	} else {
+		delete store.model.columnTrustRules[columnId];
+	}
+	markDirty();
+}
+
+/**
+ * Set the Glossary Term attachments for a single column. Empty array clears
+ * the entry. Same shape as setColumnTrustRules.
+ */
+export function setColumnGlossaryTerms(columnId: string, termIds: string[]) {
+	if (!store.model.columnGlossaryTerms) {
+		store.model.columnGlossaryTerms = {};
+	}
+	if (termIds.length > 0) {
+		store.model.columnGlossaryTerms[columnId] = termIds;
+	} else {
+		delete store.model.columnGlossaryTerms[columnId];
+	}
+	markDirty();
+}
+
+/**
+ * Add or update a Trust Rule in the catalog. If the rule has an existing
+ * id, it's updated in place; otherwise inserted. Returns the rule id.
+ */
+export function upsertTrustRule(rule: TrustRule): string {
+	const idx = store.model.trustRules.findIndex((r) => r.id === rule.id);
+	if (idx >= 0) {
+		store.model.trustRules[idx] = rule;
+	} else {
+		store.model.trustRules.push(rule);
+	}
+	markDirty();
+	return rule.id;
+}
+
+/**
+ * Remove a Trust Rule from the catalog AND from every column's attachment
+ * list. (Same logic as removeItem('global_policy', ...) — exposed as a
+ * direct API for the Trust Rules tab.)
+ */
+export function deleteTrustRule(ruleId: string) {
+	const idx = store.model.trustRules.findIndex((r) => r.id === ruleId);
+	if (idx >= 0) store.model.trustRules.splice(idx, 1);
+	if (store.model.columnTrustRules) {
+		for (const colId of Object.keys(store.model.columnTrustRules)) {
+			const filtered = store.model.columnTrustRules[colId].filter((rid) => rid !== ruleId);
+			if (filtered.length === 0) {
+				delete store.model.columnTrustRules[colId];
+			} else {
+				store.model.columnTrustRules[colId] = filtered;
+			}
+		}
 	}
 	markDirty();
 }

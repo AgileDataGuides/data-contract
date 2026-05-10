@@ -9,7 +9,7 @@
 	import { contextPlaneToContract } from '$lib/converters/context-plane';
 
 	let {
-		activeTab = $bindable('contract'),
+		activeTab = $bindable('agreement'),
 		onExportJson,
 		onImportJson,
 		onExportOdcs,
@@ -31,10 +31,11 @@
 	} = $props();
 
 	const tabs = [
-		{ id: 'contract', label: 'Canvas' },
-		{ id: 'dictionary', label: 'Dictionary' },
-		{ id: 'example-data', label: 'Example Data' },
 		{ id: 'agreement', label: 'Agreement' },
+		{ id: 'contract', label: 'Canvas' },
+		{ id: 'dictionary', label: 'Table' },
+		{ id: 'example-data', label: 'Example Data' },
+		{ id: 'trust-rules', label: 'Trust Rules' },
 		{ id: 'patterns', label: 'Manage Patterns' }
 	];
 

@@ -46,7 +46,14 @@ export interface ColumnItem extends ContractItem {
 export interface TrustRule extends ContractItem {
 	category: string;        // e.g. 'Completeness', 'Uniqueness', 'Accuracy', 'Freshness', 'Governance', 'Security', 'Custom'
 	rule: string;            // free-text rule statement, e.g. "order_id must be non-null with >= 99.5% completeness"
-	column: string;          // target column name or '*' for table-level
+	/**
+	 * @deprecated v2.2 — Trust Rules are now a column-agnostic catalog. Per-column
+	 * assignment lives on `ContractModel.columnTrustRules` (column id → rule ids[]).
+	 * The field is kept for backward-compat reading of v2.1 contracts; the v2.1→v2.2
+	 * migration leaves any value here intact for reference but does NOT auto-attach
+	 * to columns (per the user's explicit reassignment policy).
+	 */
+	column?: string;
 }
 
 /**
@@ -195,9 +202,9 @@ export interface ContractPatternOverride {
 	patternDescription: string;
 }
 
-/** v2.1 Data Contract — AgileData-native object model. */
+/** v2.2 Data Contract — AgileData-native object model. */
 export interface ContractModel {
-	version: '2.1';
+	version: '2.2';
 	id: string;
 	name: string;
 	description: string;
@@ -256,7 +263,26 @@ export interface ContractModel {
 	columns: ColumnItem[];                  // schema
 	glossaryTerms: ContractItem[];          // glossary terms used/defined by the contract
 	deliveryTypes: ContractItem[];          // how data is delivered / infrastructures
-	trustRules: TrustRule[];                // data-quality expectations (AgileData "Trust Rules")
+	trustRules: TrustRule[];                // data-quality expectations catalog (AgileData "Trust Rules")
+	/**
+	 * Per-column Trust Rule attachment. Maps a column id → array of trust rule ids
+	 * (many-to-many). Direct parallel to `Layer.policies` on the Checklist. Trust
+	 * Rules in the `trustRules` catalog can be attached to zero, one, or many
+	 * columns — and a column can have multiple rules.
+	 *
+	 * Empty / missing entry = no rules attached for that column. `*`-style
+	 * "table-level" rules from v2.1 are NOT auto-applied here; users must
+	 * explicitly attach rules to each column they apply to.
+	 */
+	columnTrustRules: Record<string, string[]>;
+	/**
+	 * Per-column Glossary Term attachment. Maps a column id → array of glossary
+	 * term ids (many-to-many). Same shape as `columnTrustRules`. Picks from
+	 * `glossaryTerms` catalog. Replaces the legacy `ColumnItem.glossaryTerm`
+	 * single-string field — that field is still present on existing columns
+	 * for backward-compat reading, but is no longer surfaced in the UI.
+	 */
+	columnGlossaryTerms: Record<string, string[]>;
 	dataSyncs: DataSyncItem[];              // SLA / freshness commitments (AgileData "Data Sync")
 	lineage: LineageItem[];                 // PROV-O aligned (entities / activities / agents)
 	exampleData: ExampleDataRow[];          // optional user-supplied sample rows (keyed by column name)

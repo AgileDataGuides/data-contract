@@ -26,7 +26,7 @@ const LS_KEY = 'data-contract-demo-models';
 const SEED_VERSION_KEY = 'data-contract-demo-seed-version';
 
 /** Bump when bundled JSONs change. ISO date format. */
-const SEED_VERSION = '2026-05-05';
+const SEED_VERSION = '2026-05-05-v22';
 
 const SEEDS: ContractModel[] = [
 	stripeCustomersSeed as unknown as ContractModel,

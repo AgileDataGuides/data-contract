@@ -169,30 +169,60 @@ export function contractToContextPlane(model: ContractModel): { nodes: ContextNo
 		const c = model.columns[i];
 		columnNameToNodeId.set(c.name, `dc-column-${c.id}`);
 	}
+	const ruleIdToNodeId = new Map<string, string>();
 	for (let i = 0; i < model.trustRules.length; i++) {
 		const q = model.trustRules[i] as TrustRule;
 		const ruleNodeId = addItemNode(q, 'global_policy', 'has_quality_rule', {
 			category: q.category,
-			rule: q.rule,
-			column: q.column
+			rule: q.rule
 		}, i + 1);
-		// Explicit graph link: trust rule → the column it validates. Table-level
-		// rules (column === '*') stay link-less because there is no single target.
-		// If the rule references a column name that doesn't exist in the schema,
-		// the link is skipped silently — the property still holds the name so
-		// the UI can flag it as "not in this contract".
-		if (q.column && q.column !== '*') {
-			const colNodeId = columnNameToNodeId.get(q.column);
-			if (colNodeId) {
-				links.push({
-					id: createId('link'),
-					source_id: ruleNodeId,
-					destination_id: colNodeId,
-					label: 'validates_column',
-					created_at: ts,
-					updated_at: ts
-				});
-			}
+		ruleIdToNodeId.set(q.id, ruleNodeId);
+	}
+
+	// v2.2 column ↔ trust rule attachments. The contract stores a many-to-many
+	// map (column id → rule ids[]); we project each pair into a `validates_column`
+	// link in the graph so downstream views (Bitol export, CP graph) can reason
+	// about which rules apply to which column.
+	const columnTrustRules = model.columnTrustRules ?? {};
+	for (const colId of Object.keys(columnTrustRules)) {
+		const colNodeId = `dc-column-${colId}`;
+		for (const ruleId of columnTrustRules[colId]) {
+			const ruleNodeId = ruleIdToNodeId.get(ruleId);
+			if (!ruleNodeId) continue;
+			links.push({
+				id: createId('link'),
+				source_id: ruleNodeId,
+				destination_id: colNodeId,
+				label: 'validates_column',
+				created_at: ts,
+				updated_at: ts
+			});
+		}
+	}
+
+	// Legacy v2.1 fallback: if a TrustRule still carries a `column` field (e.g.
+	// during an in-flight v2.1 → v2.2 migration), also emit a link so we don't
+	// silently drop the attachment when the user reassigns. v2.2-fresh contracts
+	// have `columnTrustRules` populated above and `column` undefined here.
+	for (let i = 0; i < model.trustRules.length; i++) {
+		const q = model.trustRules[i] as TrustRule;
+		if (!q.column || q.column === '*') continue;
+		const colNodeId = columnNameToNodeId.get(q.column);
+		const ruleNodeId = ruleIdToNodeId.get(q.id);
+		if (!colNodeId || !ruleNodeId) continue;
+		// Skip if the columnTrustRules-derived loop above already created this link
+		const exists = links.some(
+			(l) => l.label === 'validates_column' && l.source_id === ruleNodeId && l.destination_id === colNodeId
+		);
+		if (!exists) {
+			links.push({
+				id: createId('link'),
+				source_id: ruleNodeId,
+				destination_id: colNodeId,
+				label: 'validates_column',
+				created_at: ts,
+				updated_at: ts
+			});
 		}
 	}
 
@@ -574,6 +604,30 @@ export function contextPlaneToContract(
 		glossaryTerms: refsNodes.map(toItem),
 		deliveryTypes: delNodes.map(toDeliveryType),
 		trustRules: qrNodes.map(toTrustRule),
+		// v2.2 columnTrustRules: rebuild the column → trust rule attachment map
+		// from `validates_column` links in the graph. Falls back to empty when
+		// no links present (legacy v2.1 graphs that only carried `column` props
+		// will get re-populated as the user reassigns rules from the UI).
+		columnTrustRules: (() => {
+			const map: Record<string, string[]> = {};
+			const ruleNodeIds = new Set(qrNodes.map((n) => n.id));
+			const colNodes = findLinked('dict_column');
+			const colNodeIds = new Set(colNodes.map((n) => n.id));
+			for (const link of links) {
+				if (link.label !== 'validates_column') continue;
+				if (!ruleNodeIds.has(link.source_id)) continue;
+				if (!colNodeIds.has(link.destination_id)) continue;
+				// Strip the `dc-column-` / `dc-rule-` prefix the SA converter adds
+				// so the attachment map keys back into the source ColumnItem.id.
+				const colId = link.destination_id.replace(/^dc-column-/, '');
+				const ruleNode = qrNodes.find((n) => n.id === link.source_id);
+				if (!ruleNode) continue;
+				const ruleId = (ruleNode.properties?.sourceId as string) || ruleNode.id.replace(/^dc-rule-/, '');
+				if (!map[colId]) map[colId] = [];
+				if (!map[colId].includes(ruleId)) map[colId].push(ruleId);
+			}
+			return map;
+		})(),
 		dataSyncs: slaNodes.map(toDataSyncItem),
 		lineage: lineageItems,
 		patternTypes,
