@@ -726,6 +726,7 @@ function makeExampleModel(): ContractModel {
 			'col-001': ['tr-001'],   // order_id ← order_id completeness
 			'col-004': ['tr-002']    // total_amount ← non-negative
 		},
+		columnGlossaryTerms: {},
 		dataSyncs: [
 			{
 				id: 'ds-001',
@@ -804,7 +805,7 @@ export async function switchTo(id: string) {
 		console.warn(`switchTo: contract '${id}' not found`);
 		return;
 	}
-	const migrated = migrateModel(loaded as Record<string, unknown>);
+	const migrated = migrateModel(loaded as unknown as Record<string, unknown>);
 	if ((loaded as { version?: string }).version !== '2.2') {
 		await apiSaveModel(migrated);
 	}
@@ -1002,7 +1003,7 @@ export function addItem(entityLabel: string, name: string): ContractItem | null 
 	const item = buildItem(entityLabel, name);
 
 	if (mapping.singular) {
-		(store.model as Record<string, unknown>)[mapping.field] = item;
+		(store.model as unknown as Record<string, unknown>)[mapping.field] = item;
 	} else {
 		const arr = store.model[mapping.field] as ContractItem[];
 		arr.push(item);
@@ -1018,7 +1019,7 @@ export function removeItem(entityLabel: string, itemId: string) {
 	if (mapping.singular) {
 		const current = store.model[mapping.field] as ContractItem | null;
 		if (current?.id === itemId) {
-			(store.model as Record<string, unknown>)[mapping.field] = null;
+			(store.model as unknown as Record<string, unknown>)[mapping.field] = null;
 		}
 	} else {
 		const arr = store.model[mapping.field] as ContractItem[];

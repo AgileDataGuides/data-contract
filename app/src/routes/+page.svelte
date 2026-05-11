@@ -38,6 +38,7 @@
 	import DictionaryTableView from '$lib/components/canvas/DictionaryTableView.svelte';
 	import CardEditModal from '$lib/components/canvas/CardEditModal.svelte';
 	import type { ContextNode } from '$lib/cp-shared';
+	import type { ExampleDataRow } from '$lib/types';
 
 	let activeTab = $state<string>('agreement');
 
@@ -179,7 +180,6 @@
 		const synthDataset = { ...assetNode, id: synthDatasetId, label: 'global_data_asset' };
 		const synthLinks = columnNodes.map((col) => ({
 			id: `synth-contains-column-${col.id}`,
-			model_id: assetNode.model_id,
 			source_id: synthDatasetId,
 			destination_id: col.id,
 			label: 'contains_column',
@@ -245,12 +245,14 @@
 	}
 
 	function handleMetadataUpdate(updates: {
-		status?: string;
+		status?: string[];
 		domain?: string;
 		informationProduct?: string;
 		tags?: string[];
-		loadType?: string;
-		dataWindow?: { type: 'rolling' | 'all'; value?: number; unit?: 'days' | 'weeks' | 'months' | 'years' };
+		changeDetection?: string[];
+		retentionPeriod?: string[];
+		historyWindow?: string[];
+		exampleData?: ExampleDataRow[];
 	}) {
 		updateMetadata(updates as Parameters<typeof updateMetadata>[0]);
 		clearTimeout(orderSaveTimer);

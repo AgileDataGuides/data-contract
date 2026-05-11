@@ -43,6 +43,14 @@ export interface Pattern {
 	 * applies everywhere (back-compat default for older files).
 	 */
 	appliesTo?: string[];
+	/**
+	 * Trash toggle — when explicitly `false`, the pattern is treated as
+	 * archived: it stays in the catalog (so historical references resolve)
+	 * but the per-canvas filter hides it from active use. `true` or
+	 * undefined → active (default). Lives in ContractPatternsTab as well
+	 * as the per-app pattern override layer.
+	 */
+	enabled?: boolean;
 }
 
 export type PatternLookups = Record<string, string[]>;
