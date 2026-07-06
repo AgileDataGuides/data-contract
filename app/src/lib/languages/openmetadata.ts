@@ -241,7 +241,7 @@ function exportAll(data: GraphData, rootNodeId?: string): string {
 				name: c.name,
 				displayName: c.name,
 				description: c.description || '',
-				dataType: logicalTypeToOmsDataType(c.properties?.logicalType as string | undefined),
+				dataType: logicalTypeToOmsDataType((c.properties?.dataType as string | undefined) ?? (c.properties?.logicalType as string | undefined)),
 				constraint: (c.properties?.primaryKey as boolean) ? 'PRIMARY_KEY' : (c.properties?.unique as boolean) ? 'UNIQUE' : (c.properties?.required as boolean) ? 'NOT_NULL' : 'NULL',
 				tags: (c.properties?.classification as string) ? [{ tagFQN: `cp.classification.${c.properties?.classification}`, source: 'Classification' }] : []
 			}))
@@ -252,7 +252,7 @@ function exportAll(data: GraphData, rootNodeId?: string): string {
 	if (columns.length > 0) {
 		doc.schema = columns.map((c) => ({
 			name: c.name,
-			dataType: logicalTypeToOmsDataType(c.properties?.logicalType as string | undefined),
+			dataType: logicalTypeToOmsDataType((c.properties?.dataType as string | undefined) ?? (c.properties?.logicalType as string | undefined)),
 			description: c.description || ''
 		}));
 	}

@@ -210,6 +210,7 @@
 			classification: 'classification',
 			sourceSystem: 'sourceSystem',
 			businessRule: 'businessRule',
+			trustRule: 'businessRule',
 			glossaryTerm: 'glossaryTerm'
 		};
 		const boolKeyMap: Record<string, keyof TableRow> = {

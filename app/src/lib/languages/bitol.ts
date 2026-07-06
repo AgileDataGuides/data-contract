@@ -207,7 +207,7 @@ function exportAll(data: GraphData, rootNodeId?: string): string {
 					return stripEmpty({
 						name: col.name,
 						description: col.description,
-						logicalType: (cp.logicalType as string) || 'string',
+						logicalType: (cp.dataType as string) || (cp.logicalType as string) || 'string',
 						required: cp.required as boolean,
 						unique: cp.unique as boolean,
 						primaryKey: cp.primaryKey as boolean,
@@ -232,7 +232,7 @@ function exportAll(data: GraphData, rootNodeId?: string): string {
 					return stripEmpty({
 						name: col.name,
 						description: col.description,
-						logicalType: (cp.logicalType as string) || 'string',
+						logicalType: (cp.dataType as string) || (cp.logicalType as string) || 'string',
 						required: cp.required as boolean,
 						unique: cp.unique as boolean,
 						primaryKey: cp.primaryKey as boolean,

@@ -42,13 +42,6 @@
 
 	let activeTab = $state<string>('agreement');
 
-	// DIAGNOSTIC: log activeTab changes + capture stack so we can see what's
-	// flipping it back to 'contract' after a Trust Rule / Glossary Term cell
-	// click. Remove once the culprit is identified.
-	$effect(() => {
-		console.log('[DC] activeTab changed to:', activeTab, new Error().stack);
-	});
-
 	// Model management (Tier 1 — dark App Header)
 	let showSwitcher = $state(false);
 	let showNew = $state(false);

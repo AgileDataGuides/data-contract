@@ -26,13 +26,29 @@
     "Persisted", "Transient", "Virtualised", "In-Memory", "Other"
   ],
   "data-storage-technology": [
-    "AWS Redshift", "AWS S3", "Files", "Google BI Engine", "Google BigQuery",
+    "Amazon Redshift", "Amazon S3", "Files", "Google BI Engine", "Google BigQuery",
     "Google Cloud Storage", "Microsoft Azure Blob Storage", "Microsoft Azure Data Lake",
     "Microsoft Power BI", "Microsoft SQL Server", "Microsoft SQL Server Analysis Services",
     "MySql", "Other", "Postgres", "Snowflake"
   ],
   "data-storage-format": [
     "CSV", "Delta", "Hudi", "Hyper", "Iceberg", "JSON", "Native", "Parquet", "Vertipaq"
+  ],
+  "data-compute-technology": [
+    "Amazon Athena", "Amazon EMR", "Amazon Kinesis", "Amazon OpenSearch", "Amazon Redshift",
+    "Apache Beam", "Apache Cassandra", "Apache Drill", "Apache Druid", "Apache Flink",
+    "Apache Hive", "Apache Impala", "Apache Kafka", "Apache NiFi", "Apache Pinot",
+    "Apache Presto", "Apache Pulsar", "Apache Samza", "Apache Spark", "Apache Storm",
+    "Azure Stream Analytics", "Azure Synapse", "Bauplan", "ClickHouse", "Cloudera Data Platform",
+    "CockroachDB", "Databricks", "DataFusion", "Dremio", "DuckDB", "Elasticsearch",
+    "Google BI Engine", "Google BigQuery", "Google Cloud Data Fusion", "Google Cloud Spanner",
+    "Google Dataflow", "Google Dataproc", "IBM Db2 Warehouse", "InfluxDB", "Kafka Streams",
+    "ksqlDB", "MariaDB", "Materialize", "Microsoft Fabric", "Microsoft Power BI",
+    "Microsoft SQL Server", "Microsoft SQL Server Analysis Services", "MongoDB", "MotherDuck",
+    "MySql", "Neo4j", "OpenSearch", "Oracle Autonomous Data Warehouse", "Oracle Database",
+    "Other", "Polars", "Postgres", "QuestDB", "Redis", "Rockset", "SAP HANA", "SingleStore",
+    "Snowflake", "Splunk", "SQLite", "Starburst", "StarRocks", "Teradata Vantage",
+    "TimescaleDB", "Tinybird", "Trino", "Velox", "Vertica", "Yellowbrick", "YugabyteDB"
   ],
   "default-retention-period": [
     "0 (Transient)", "24 hours", "7 days", "30 days", "90 days (3 months)",
