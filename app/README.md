@@ -42,13 +42,14 @@ The app starts at [http://localhost:5119](http://localhost:5119).
 
 ## Features
 
+- **12 Steps**: the app opens on a tab that walks a team through the contract one question at a time: the Data Asset, who provides and uses it, its terms, columns and Trust Rules, example rows, how it arrives, then a check of the steps still empty. Same cards as the Canvas tab
 - **Tier 1–3 toolbar** — App switcher, contract metadata + actions, tab navigation
 - **Click-to-select cards** — click a card to view, click again to inline-edit
 - **Trust Rules** — categorise rules (Completeness, Uniqueness, Accuracy, Freshness, Validity, Security, Governance), pin to a column, store the rule expression as free text
 - **Data Sync** — typed properties (`frequency`, `latency`, `uptime`, `retention`) with units
 - **Lineage** — PROV-O-aligned items with provType (`entity` / `activity` / `agent`) and upstream relationships
 - **Manage Pattern Types** — per-contract customisation of the lookup catalogues that drive the toolbar chips (Status / Change Detection / History Window). Toggle patterns off, trash them, edit values, export/import per pattern or all
-- **Multiple export formats** — JSON (native), ODCS YAML (Bitol v3.0.2), OpenMetadata Standards JSON, RTF, Word, PDF
+- **Multiple export formats**: JSON (native), ODCS YAML (Bitol v3.0.2), OpenMetadata Standards JSON, RTF, Word, PDF, all in one Export menu that says what each file is for
 - **Import** — auto-detects native JSON, ODCS YAML, OpenMetadata, or Context Plane graph format
 - **Multiple contracts** — create, switch between, and delete contracts
 - **Auto-save** — changes persist to browser localStorage automatically
@@ -86,7 +87,7 @@ Languages are pure translation modules — your contract data stays in the Agile
 
 This app is designed to run locally on your own machine. Do not expose it to the internet or deploy it on a public server. The Save feature writes files directly to your filesystem. There is no user authentication, so anyone who can reach the server can read and overwrite your data.
 
-If you need to share your work, use the **Export** buttons to download files and share them manually.
+If you need to share your work, use the **Export** menu to download files and share them manually.
 
 ## Tech Stack
 

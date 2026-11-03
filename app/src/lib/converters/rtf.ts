@@ -189,7 +189,10 @@ export function contractToRtf(model: ContractModel): string {
 		out.push(plain(`The following ${model.trustRules.length} Trust Rule${model.trustRules.length === 1 ? '' : 's'} will be enforced:`));
 		out.push(par());
 		model.trustRules.forEach((rule, i) => {
-			const targetField = rule.column === '*' ? 'ALL (table-level)' : (rule.column || 'ALL (table-level)');
+			// v2.2 attaches rules to columns through columnTrustRules. The
+			// deprecated rule.column is the fallback for older contracts.
+			const attached = (model.columns ?? []).filter((c) => (model.columnTrustRules?.[c.id] ?? []).includes(rule.id)).map((c) => c.name);
+			const targetField = attached.length > 0 ? attached.join(', ') : (rule.column && rule.column !== '*' ? rule.column : 'ALL (table-level)');
 			out.push(`{\\pard\\sa40\\li200{\\b 4.${i + 1} ${esc(rule.name)}\\b0}\\par}\n`);
 			out.push(`{\\pard\\sa40\\li400 ${esc('Category:')}\\tab ${esc(rule.category || 'Custom')}\\par}\n`);
 			out.push(`{\\pard\\sa40\\li400 ${esc('Target field:')}\\tab ${esc(targetField)}\\par}\n`);

@@ -13,6 +13,17 @@
 	const model = $derived(contextPlaneToContract({ nodes, links }));
 	const today = new Date().toISOString().slice(0, 10);
 
+	// v2.2 attaches rules to columns through columnTrustRules. The deprecated
+	// rule.column is the fallback for older contracts. Same rule as the RTF and
+	// Word exports.
+	function targetField(rule: { id: string; column?: string }): string {
+		const attached = model.columns
+			.filter((c) => (model.columnTrustRules?.[c.id] ?? []).includes(rule.id))
+			.map((c) => c.name);
+		if (attached.length > 0) return attached.join(', ');
+		return rule.column && rule.column !== '*' ? rule.column : 'ALL (table-level)';
+	}
+
 	// Change Detection / Retention Period / History Window are now plain strings
 	// sourced from the shared patterns (change-detection, default-retention-period,
 	// history-window). The Agreement view just renders them verbatim — the
@@ -234,7 +245,7 @@
 								<span class="font-semibold uppercase tracking-wider text-slate-500">Category</span>
 								<span class="text-slate-700">{rule.category}</span>
 								<span class="font-semibold uppercase tracking-wider text-slate-500">Target field</span>
-								<span class="font-mono text-slate-700">{rule.column === '*' ? 'ALL (table-level)' : rule.column}</span>
+								<span class="font-mono text-slate-700">{targetField(rule)}</span>
 								<span class="font-semibold uppercase tracking-wider text-slate-500">Rule</span>
 								<span class="text-slate-700">{rule.rule || '(rule statement not provided)'}</span>
 								{#if rule.description}

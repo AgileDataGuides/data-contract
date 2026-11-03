@@ -11,7 +11,7 @@ The Data Contract app is a **local-only dev tool**. It is designed to run on you
 
 The dev server binds to `127.0.0.1:5119` and the SvelteKit `+server.ts` API routes write JSON files directly to `data/`. There is no authentication. Anyone who can reach the port can read, overwrite, or delete your contracts.
 
-If you need to share a contract, use the **Export JSON / ODCS / OMS / RTF / Word / PDF** buttons and share the downloaded files — never the server.
+If you need to share a contract, use the **Export** menu (JSON, ODCS, OMS, RTF, Word or PDF) and share the downloaded files, never the server.
 
 ## Supported versions
 

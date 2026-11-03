@@ -13,15 +13,20 @@ import { osi } from './osi.js';
 import { dbtMetricflow } from './dbt-metricflow.js';
 import { malloy } from './malloy.js';
 import { openmetadata } from './openmetadata.js';
+import { turtle, rdfXml } from './concept-model-rdf.js';
 
 export type { Language, GraphData, ValidationResult } from './types.js';
+export { detectRdfLanguage } from './concept-model-rdf.js';
 
 const registry: Record<string, Language> = {
 	bitol,
 	osi,
 	'dbt-metricflow': dbtMetricflow,
 	malloy,
-	openmetadata
+	openmetadata,
+	// Concept Models as OWL 2 and SKOS, in two RDF syntaxes (concept-model-rdf.ts)
+	turtle,
+	'rdf-xml': rdfXml
 };
 
 /** Look up a language by ID. Returns undefined if not registered. */
@@ -35,4 +40,4 @@ export function listLanguages(): Language[] {
 }
 
 /** Re-export individual languages for direct import if preferred. */
-export { bitol, osi, dbtMetricflow, malloy, openmetadata };
+export { bitol, osi, dbtMetricflow, malloy, openmetadata, turtle, rdfXml };

@@ -1,23 +1,20 @@
 <script lang="ts">
 	import CanvasSection from '$lib/components/canvas/CanvasSection.svelte';
 	import CanvasAreaShell from '$lib/components/canvas/CanvasAreaShell.svelte';
+	import ExportMenu, { offerExport, type ExportMenuGroup } from '$lib/components/canvas/ExportMenu.svelte';
 	import ContractAgreementView from './ContractAgreementView.svelte';
 	import ContractExampleDataView from './ContractExampleDataView.svelte';
 	import ContractPatternsTab from './ContractPatternsTab.svelte';
+	import ContractStepsView from './ContractStepsView.svelte';
 	import PatternValueDropdown from './PatternValueDropdown.svelte';
 	import type { ContextNode, ContextLink } from '$lib/cp-shared';
 	import type { DataAdapter } from '$lib/cp-shared';
 	import type { ExampleDataRow } from '../../types';
 	import { getNodeLabels } from '$lib/cp-shared';
-	import { listDeliveryTypeLabels } from '$lib/shared-data/delivery-types';
 	import { getPattern, getPatternValues } from '$lib/shared-data/patterns';
 	import { getContext, type Snippet } from 'svelte';
-
-	// Predefined labels for the Delivery / Infrastructure CanvasSection's
-	// "+ Add" datalist. When the user picks one, the label becomes the new
-	// delivery type's name; the store resolves it back to a catalog key via
-	// getDeliveryTypeByLabel() and stores `typeKey` on the node properties.
-	const deliveryTypeLabels = listDeliveryTypeLabels();
+	// Relative, not $lib: the Context Plane imports this component, and $lib there is its own folder
+	import { METADATA_COLOR, PATTERN_AREAS, SECTIONS, type PatternAreaCanon, type SectionLabel } from '../../canon/steps';
 
 	let {
 		nodes,
@@ -41,7 +38,8 @@
 		activeTab = 'contract',
 		onTabChange,
 		tabs = [{ id: 'contract', label: 'Contract' }],
-		contentSlots
+		contentSlots,
+		step = $bindable()
 	}: {
 		nodes: ContextNode[];
 		links?: ContextLink[];
@@ -80,6 +78,8 @@
 		 * of this file (e.g. the `dictionary` tab's view is passed in from CP).
 		 */
 		contentSlots?: Record<string, Snippet>;
+		/** The selected step on the 12 Steps tab. A host can bind it. */
+		step?: string;
 	} = $props();
 
 	let importing = $state(false);
@@ -174,6 +174,28 @@
 		}
 		return nodes.filter((n) => lineageNodeIds.has(n.id));
 	});
+
+	/** The cards in a canvas area, for the grid and the 12 Steps tab alike. */
+	function sectionNodes(label: string): ContextNode[] {
+		switch (label) {
+			case 'global_data_asset':
+				return assetNode ? [assetNode] : [];
+			case 'global_domain':
+				return domainNode ? [domainNode] : [];
+			case 'global_info_product':
+				return informationProductNode ? [informationProductNode] : [];
+			case 'lineage_source':
+				return lineageNodes;
+			default:
+				return getScoped(label);
+		}
+	}
+
+	/** A grid area's title, colour, entity label, limit and suggestions, from the one area list */
+	function section(label: SectionLabel) {
+		const { title, color, maxItems, suggestions } = SECTIONS[label] as { title: string; color: string; maxItems?: number; suggestions?: string[] };
+		return { title, color, entityLabel: label, maxItems, addSuggestions: suggestions, nodes: sectionNodes(label) };
+	}
 
 	// ── Switcher state ──
 	let showSwitcherDropdown = $state(false);
@@ -322,6 +344,20 @@
 		toStringArray(selectedContract?.properties?.historyWindow)
 	);
 
+	/** A pattern area's choices and values for the selected contract, for the 12 Steps tab */
+	function patternFor(area: PatternAreaCanon) {
+		return {
+			options: patternValuesFor(area.patternId),
+			selected: toStringArray(selectedContract?.properties?.[area.field]),
+			multiSelect: patternMultiSelect(area.patternId)
+		};
+	}
+
+	const exampleRowCount = $derived.by(() => {
+		const rows = selectedContract?.properties?.exampleData;
+		return Array.isArray(rows) ? rows.length : 0;
+	});
+
 	async function handleExportOdcs() {
 		if (onExportOdcs && selectedContract) {
 			onExportOdcs(selectedContract.name);
@@ -352,31 +388,31 @@
 		}
 	}
 
-	// Section colors — aligned to entity type colors from DESIGN_SYSTEM.md § 7
-	// Cyan-600 for assets (data asset)
-	// Orange-500 for detail (personas, delivery, team)
-	// Blue-600 for schema (columns)
-	// Green-600 for glossary terms
-	// Violet-600 for governance (Trust Rules, Data Sync)
-	// Indigo-500 for lineage
-	const COLORS = {
-		dataAsset: '#0891b2',
-		// Metadata-row areas (see § Contract Metadata Row in DESIGN_SYSTEM.md):
-		// Linked-entity metadata keeps its own entity colour (Data Asset = cyan-600,
-		// Information Product = sky-500). Property-only metadata uses a neutral slate
-		// so the chip / value inside carries the visual meaning (e.g. the Status chip
-		// already uses the 7-stage OMS lifecycle palette — the card frame stays calm).
-		informationProduct: '#0ea5e9',
-		metadata: '#64748b',
-		team: '#f97316',
-		personas: '#f97316',
-		columns: '#2563eb',
-		glossaryTerms: '#16a34a',
-		deliveryTypes: '#f97316',
-		dataSyncs: '#7c3aed',
-		trustRules: '#7c3aed',
-		lineage: '#6366f1'
-	};
+	/** Every export, grouped, behind one Export button (DESIGN_SYSTEM.md § Export Menu). */
+	const exportGroups: ExportMenuGroup[] = $derived([
+		{ heading: 'Model', items: [{ label: 'JSON', description: 'The whole contract, to share or import again', onSelect: handleExport }] },
+		{
+			heading: 'Document',
+			items: [
+				...offerExport(onExportRtf && handleExportRtf, 'RTF', 'Opens in Word, Pages or TextEdit'),
+				...offerExport(onExportWord && handleExportWord, 'Word', 'A .doc file for Word'),
+				...offerExport(onExportPdf && handleExportPdf, 'PDF', 'Opens the print dialog. Choose Save as PDF')
+			]
+		},
+		{
+			heading: 'Standards',
+			items: [
+				...offerExport(onExportOdcs && handleExportOdcs, 'ODCS', 'Open Data Contract Standard YAML (.odcs.yaml)'),
+				...offerExport(onExportOms && handleExportOms, 'OMS', 'OpenMetadata JSON-LD (.jsonld)')
+			]
+		}
+	]);
+
+	// Area titles and colours live in canon/steps.ts, the one list the grid and
+	// the 12 Steps tab share. Linked-entity areas keep their entity colour (Data
+	// Asset cyan-600, Information Product sky-500). Property-only metadata uses
+	// METADATA_COLOR, a neutral slate, so the chip inside carries the meaning
+	// (§ Contract Metadata Row in DESIGN_SYSTEM.md).
 </script>
 
 <svelte:window onclick={handleClickOutsideSwitcher} />
@@ -425,7 +461,7 @@
 		</div>
 	{/if}
 
-	<!-- Tier 2: Name/Description + Export/Import (§ Tier 2 — card pattern, click-to-edit) -->
+	<!-- Tier 2: Name/Description + Export menu (§ Tier 2 — card pattern, click-to-edit; § Export Menu) -->
 	{#if selectedContract && showToolbar}
 		<div class="px-4 pt-3 shrink-0">
 			<div class="bg-white border border-slate-200 rounded-lg">
@@ -445,22 +481,7 @@
 						</div>
 					</div>
 					<div class="flex items-center gap-2 shrink-0">
-						<button onclick={handleExport} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 transition-colors">Export JSON</button>
-						{#if onExportOdcs}
-							<button onclick={handleExportOdcs} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors">Export ODCS</button>
-						{/if}
-						{#if onExportOms}
-							<button onclick={handleExportOms} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors" title="Export as OpenMetadata JSON-LD">Export OMS</button>
-						{/if}
-						{#if onExportRtf}
-							<button onclick={handleExportRtf} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors" title="Export as RTF (opens in Word / Pages / TextEdit)">Export RTF</button>
-						{/if}
-						{#if onExportWord}
-							<button onclick={handleExportWord} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors" title="Export as Word document (.doc)">Export Word</button>
-						{/if}
-						{#if onExportPdf}
-							<button onclick={handleExportPdf} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors" title="Export as PDF (opens browser print dialog — pick Save as PDF)">Export PDF</button>
-						{/if}
+						<ExportMenu groups={exportGroups} />
 					</div>
 				</div>
 			</div>
@@ -484,7 +505,7 @@
 	{/if}
 
 	<!-- Content: based on activeTab.
-	     Native tabs: `contract` (2x4 grid), `agreement` (ContractAgreementView),
+	     Native tabs: `steps` (ContractStepsView, the 12 Steps), `contract` (the grid), `agreement` (ContractAgreementView),
 	     `example-data` (ContractExampleDataView), `patterns` (ContractPatternsTab
 	     — same design grammar as the Checklist's Manage Patterns tab).
 	     Any other tab id is rendered from `contentSlots[tabId]` if supplied —
@@ -492,14 +513,30 @@
 	     to import from the data-dictionary package (horizontal-dep-free).
 	     The contract's single data asset is surfaced in the Tier 2 subtitle
 	     ("Data Asset: <name>") above, so it is no longer a grid section. -->
-	{#if selectedContract && activeTab && activeTab !== 'contract' && activeTab !== 'agreement' && activeTab !== 'example-data' && activeTab !== 'patterns' && contentSlots?.[activeTab]}
+	{#if selectedContract && activeTab && activeTab !== 'steps' && activeTab !== 'contract' && activeTab !== 'agreement' && activeTab !== 'example-data' && activeTab !== 'patterns' && contentSlots?.[activeTab]}
 		{@render contentSlots[activeTab]()}
+	{:else if selectedContract && activeTab === 'steps'}
+		<div class="flex-1 min-h-0 border-t border-slate-200">
+			<ContractStepsView
+				{nodes}
+				{links}
+				contractId={selectedContract.id}
+				{sectionNodes}
+				pattern={patternFor}
+				{exampleRowCount}
+				{onSelectNode}
+				{onAddNode}
+				{onMetadataUpdate}
+				bind:selected={step}
+			/>
+		</div>
 	{:else if selectedContract && activeTab === 'agreement'}
 		<ContractAgreementView {nodes} {links} />
 	{:else if selectedContract && activeTab === 'example-data'}
 		<ContractExampleDataView
 			{nodes}
 			{links}
+			contractId={selectedContract.id}
 			onUpdate={(next) => onMetadataUpdate?.({ exampleData: next })}
 		/>
 	{:else if selectedContract && activeTab === 'patterns'}
@@ -525,12 +562,12 @@
 				     them pick an existing asset from anywhere in the Business Model. To
 				     swap the current asset, click X on its card to remove, then add or
 				     pick a new one. Same UX as Name / Product Owner / T-Shirt Size on IPC. -->
-				<CanvasSection title="Data Asset" entityLabel="global_data_asset" nodes={assetNode ? [assetNode] : []} color={COLORS.dataAsset} maxItems={1} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_data_asset')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 
 				<!-- Status — pattern-driven dropdown sourced from the shared `status` pattern.
 				     Same selection UX as the three Row 1 chips (Change Detection / Retention
 				     Period / History Window). multiSelect: false → radio + auto-close. -->
-				<CanvasAreaShell title="Status" color={COLORS.metadata}>
+				<CanvasAreaShell title={PATTERN_AREAS.status.title} color={METADATA_COLOR}>
 					{#if onMetadataUpdate}
 						<PatternValueDropdown
 							patternId={STATUS_PATTERN_ID}
@@ -546,12 +583,12 @@
 				     CanvasSection + maxItems={1}, IPC-style UX. Parent wires the
 				     has_domain link via CONTRACT_RELATIONSHIPS (CP) / singular
 				     LABEL_TO_FIELD (SA). -->
-				<CanvasSection title="Domain" entityLabel="global_domain" nodes={domainNode ? [domainNode] : []} color={COLORS.metadata} maxItems={1} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_domain')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 
 				<!-- Information Product — linked global_info_product node (cross-canvas
 				     with IPC). CanvasSection + maxItems={1}. Parent wires the
 				     has_information_product link. -->
-				<CanvasSection title="Information Product" entityLabel="global_info_product" nodes={informationProductNode ? [informationProductNode] : []} color={COLORS.informationProduct} maxItems={1} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_info_product')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 
 				<!-- Row 1 Metadata: 3 pattern-driven dropdown areas. Same selection UX as
 				     the Checklist's pattern cells — click opens a panel with filter input +
@@ -563,7 +600,7 @@
 				     Layout: Change Detection (col-span-1) | Retention Period (col-span-2)
 				     | History Window (col-span-1) — Retention Period gets the extra width
 				     for its long labels. -->
-				<CanvasAreaShell title="Change Detection" color={COLORS.metadata}>
+				<CanvasAreaShell title={PATTERN_AREAS['change-detection'].title} color={METADATA_COLOR}>
 					{#if onMetadataUpdate}
 						<PatternValueDropdown
 							patternId={CHANGE_DETECTION_PATTERN_ID}
@@ -576,7 +613,7 @@
 				</CanvasAreaShell>
 
 				<div class="col-span-2">
-					<CanvasAreaShell title="Retention Period" color={COLORS.metadata}>
+					<CanvasAreaShell title={PATTERN_AREAS['default-retention-period'].title} color={METADATA_COLOR}>
 						{#if onMetadataUpdate}
 							<PatternValueDropdown
 								patternId={RETENTION_PERIOD_PATTERN_ID}
@@ -589,7 +626,7 @@
 					</CanvasAreaShell>
 				</div>
 
-				<CanvasAreaShell title="History Window" color={COLORS.metadata}>
+				<CanvasAreaShell title={PATTERN_AREAS['history-window'].title} color={METADATA_COLOR}>
 					{#if onMetadataUpdate}
 						<PatternValueDropdown
 							patternId={HISTORY_WINDOW_PATTERN_ID}
@@ -605,25 +642,25 @@
 				<!-- Details / Schema / Fields — cards intentionally name-only (hideBadges). Full
 				     column metadata (data type, PK/UNIQUE/REQ/classification) is surfaced in the
 				     detail popup and in the Agreement view, keeping the Contract grid uncluttered. -->
-				<CanvasSection title="Details / Schema / Fields" entityLabel="dict_column" nodes={getScoped('dict_column')} color={COLORS.columns} hideBadges {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
-				<CanvasSection title="Trust Rules" entityLabel="global_policy" nodes={getScoped('global_policy')} color={COLORS.trustRules} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
-				<CanvasSection title="Data Sync" entityLabel="global_data_sync" nodes={getScoped('global_data_sync')} color={COLORS.dataSyncs} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
-				<CanvasSection title="Glossary Terms" entityLabel="global_glossary_term" nodes={getScoped('global_glossary_term')} color={COLORS.glossaryTerms} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('dict_column')} hideBadges {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_policy')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_data_sync')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_glossary_term')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 
 				<!-- Row 3 Main: Team | Personas | Delivery / Infrastructure | Lineage -->
-				<CanvasSection title="Team" entityLabel="global_publisher" nodes={getScoped('global_publisher')} color={COLORS.team} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
-				<CanvasSection title="Personas" entityLabel="global_persona" nodes={getScoped('global_persona')} color={COLORS.personas} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_publisher')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_persona')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 				<!-- Delivery / Infrastructure — catalog-driven (packages/shared/data/delivery-types.json).
 				     The "+" input shows a datalist of predefined last-mile tools / warehouses /
 				     object stores / streaming platforms / protocols. Users can pick one or type
 				     their own; the store resolves the label to a catalog typeKey for round-tripping
 				     through the Bitol (ODCS) language. -->
-				<CanvasSection title="Delivery / Infrastructure" entityLabel="global_delivery_type" nodes={getScoped('global_delivery_type')} color={COLORS.deliveryTypes} addSuggestions={deliveryTypeLabels} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('global_delivery_type')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 				<!-- Lineage uses entityLabel="lineage_source" so the + add path lands the
 				     new item in the `lineage` array (not the singular `dataAsset`).
 				     The store builds it as a LineageItem with provType: 'entity' by default;
 				     the user can change provType later via the detail / edit modal. -->
-				<CanvasSection title="Lineage" entityLabel="lineage_source" nodes={lineageNodes} color={COLORS.lineage} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
+				<CanvasSection {...section('lineage_source')} {onSelectNode} {onAddNode} onAddExisting={onAddExisting} />
 			</div>
 		</div>
 	{:else}

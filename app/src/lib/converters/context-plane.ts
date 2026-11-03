@@ -16,6 +16,10 @@ import type {
 } from '../types';
 import { migrateModel } from '../stores/contract.svelte';
 
+// Re-exported so the Context Plane can bring a raw contract file (v1.0 to
+// v2.2) to the current shape before contractToContextPlane reads it.
+export { migrateModel };
+
 function createId(prefix: string): string {
 	const rand = typeof crypto !== 'undefined' && crypto.randomUUID
 		? crypto.randomUUID().slice(0, 8)
@@ -617,9 +621,10 @@ export function contextPlaneToContract(
 				if (link.label !== 'validates_column') continue;
 				if (!ruleNodeIds.has(link.source_id)) continue;
 				if (!colNodeIds.has(link.destination_id)) continue;
-				// Strip the `dc-column-` / `dc-rule-` prefix the SA converter adds
-				// so the attachment map keys back into the source ColumnItem.id.
-				const colId = link.destination_id.replace(/^dc-column-/, '');
+				// Key by the same id toColumnItem gives the column: its sourceId,
+				// else the node id without the `dc-column-` prefix the SA converter adds.
+				const colNode = colNodes.find((n) => n.id === link.destination_id);
+				const colId = (colNode?.properties?.sourceId as string) || link.destination_id.replace(/^dc-column-/, '');
 				const ruleNode = qrNodes.find((n) => n.id === link.source_id);
 				if (!ruleNode) continue;
 				const ruleId = (ruleNode.properties?.sourceId as string) || ruleNode.id.replace(/^dc-rule-/, '');

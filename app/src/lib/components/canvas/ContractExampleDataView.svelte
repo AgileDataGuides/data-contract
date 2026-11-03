@@ -6,10 +6,16 @@
 	let {
 		nodes,
 		links,
-		onUpdate
+		onUpdate,
+		embedded = false,
+		contractId
 	}: {
 		nodes: ContextNode[];
 		links: ContextLink[];
+		/** Inside a step panel (the 12 Steps tab): no padding or title of its own, the step header names it. */
+		embedded?: boolean;
+		/** The contract to show. Without it the first contract in the graph is used, which is wrong when a Business Model holds several. */
+		contractId?: string;
 		/**
 		 * Callback fired every time any cell value, row-add, or row-remove
 		 * lands. Consumers replace the full exampleData array — keeps the
@@ -21,7 +27,7 @@
 
 	// Materialise the model from the graph so the column list stays in sync
 	// with the Schema tab without us manually reading every column node.
-	const model = $derived(contextPlaneToContract({ nodes, links }));
+	const model = $derived(contextPlaneToContract({ nodes, links }, contractId));
 	const columns = $derived(model.columns);
 	const rows = $derived(model.exampleData);
 
@@ -59,11 +65,13 @@
 	}
 </script>
 
-<div class="flex-1 overflow-auto p-4 bg-slate-50">
+<div class={embedded ? '' : 'flex-1 overflow-auto p-4 bg-slate-50'}>
 	<!-- Header strip — title + row counter + Add Row button (§ Canvas Action Buttons — Add) -->
 	<div class="flex items-center justify-between mb-3">
 		<div class="flex items-center gap-3">
-			<h2 class="text-sm font-semibold text-slate-700">Example Data</h2>
+			{#if !embedded}
+				<h2 class="text-sm font-semibold text-slate-700">Example Data</h2>
+			{/if}
 			<span class="text-[10px] text-slate-400">
 				{rows.length} {rows.length === 1 ? 'row' : 'rows'} · {columns.length} {columns.length === 1 ? 'column' : 'columns'}
 			</span>
@@ -80,7 +88,7 @@
 		<!-- Empty state — no schema, so no table to build -->
 		<div class="bg-white rounded-lg border border-slate-200 p-8 text-center">
 			<p class="text-sm text-slate-500 mb-2">No columns defined yet.</p>
-			<p class="text-xs text-slate-400">Add columns to the contract's schema in the Contract tab, then return here to enter example values.</p>
+			<p class="text-xs text-slate-400">{embedded ? 'Add columns in Step 5, then come back here to enter example values.' : "Add columns to the contract's schema in the Canvas tab, then return here to enter example values."}</p>
 		</div>
 	{:else}
 		<!-- overflow-x-auto lets wide schemas (many columns) scroll horizontally;

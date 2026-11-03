@@ -187,7 +187,10 @@ export function contractToHtml(model: ContractModel): string {
 		parts.push(`<p style="${S.para}">The following ${model.trustRules.length} Trust Rule${model.trustRules.length === 1 ? '' : 's'} will be enforced:</p>`);
 		parts.push(`<ol style="${S.ol}">`);
 		model.trustRules.forEach((rule) => {
-			const targetField = rule.column === '*' ? 'ALL (table-level)' : (rule.column || 'ALL (table-level)');
+			// v2.2 attaches rules to columns through columnTrustRules. The
+			// deprecated rule.column is the fallback for older contracts.
+			const attached = (model.columns ?? []).filter((c) => (model.columnTrustRules?.[c.id] ?? []).includes(rule.id)).map((c) => c.name);
+			const targetField = attached.length > 0 ? attached.join(', ') : (rule.column && rule.column !== '*' ? rule.column : 'ALL (table-level)');
 			parts.push(`<li style="${S.li}"><strong>${esc(rule.name)}</strong>`);
 			parts.push(`<div style="${S.listGrid}">`);
 			parts.push(`<div><strong>Category:</strong> ${esc(rule.category || 'Custom')}</div>`);

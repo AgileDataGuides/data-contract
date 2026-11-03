@@ -40,7 +40,8 @@
 	import type { ContextNode } from '$lib/cp-shared';
 	import type { ExampleDataRow } from '$lib/types';
 
-	let activeTab = $state<string>('agreement');
+	// 12 Steps is the way in, so the app opens on it, like the Concept Model and the Information Product Canvas
+	let activeTab = $state<string>('steps');
 
 	// Model management (Tier 1 — dark App Header)
 	let showSwitcher = $state(false);
@@ -62,6 +63,8 @@
 
 	async function handleDelete() {
 		if (!confirm(`Delete "${store.model.name}"?`)) return;
+		// A save still pending from an edit would write the deleted model back
+		clearTimeout(orderSaveTimer);
 		await deleteModel(store.model.id);
 	}
 
@@ -76,6 +79,11 @@
 				// Persist the rename — without this, the model is dirty in
 				// memory but never written to disk, so the change reverts on
 				// page reload.
+				clearTimeout(orderSaveTimer);
+				orderSaveTimer = setTimeout(() => saveModel(), 300);
+			}
+			if (updates.description !== undefined) {
+				updateItemProperties(id, { description: updates.description ?? '' });
 				clearTimeout(orderSaveTimer);
 				orderSaveTimer = setTimeout(() => saveModel(), 300);
 			}
@@ -484,7 +492,7 @@
 			onExportOpenMetadata={() => handleExportOpenMetadata(store.model.name)}
 		/>
 	</div>
-	<!-- Canvas content: ContractLayout (contract tab), ContractAgreementView (agreement tab),
+	<!-- Canvas content: ContractLayout (steps and contract tabs), ContractAgreementView (agreement tab),
 	     or ContractExampleDataView (example-data tab). SA routes tabs from its external
 	     Toolbar component; ContractLayout is hidden behind showTabs={false} in SA mode. -->
 	<div class="flex-1 overflow-hidden flex flex-col">
@@ -538,6 +546,7 @@
 				showSwitcher={false}
 				showToolbar={false}
 				showTabs={false}
+				activeTab={activeTab === 'steps' ? 'steps' : 'contract'}
 			/>
 		{/if}
 	</div>

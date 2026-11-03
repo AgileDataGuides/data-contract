@@ -335,8 +335,10 @@ export function migrateModel(m: Record<string, unknown>): ContractModel {
 			historyWindow: normaliseHistoryWindow(v2.historyWindow ?? v2.dataWindow),
 			retentionPeriod: normaliseStringArray(v2.retentionPeriod),
 			trustRules,
-			columnTrustRules: {},
-		columnGlossaryTerms: {},
+			// Genuine v2.0 files have neither map. contextPlaneToContract tags
+			// its rebuilt model '2.0' too, so keep the maps it carries.
+			columnTrustRules: (v2.columnTrustRules as Record<string, string[]> | undefined) ?? {},
+			columnGlossaryTerms: (v2.columnGlossaryTerms as Record<string, string[]> | undefined) ?? {},
 			dataSyncs,
 			glossaryTerms,
 			columns,
@@ -870,6 +872,11 @@ export async function newModel(name: string) {
 }
 
 export async function deleteModel(id: string) {
+	// Unsaved edits die with the model, before the request goes, so neither
+	// switchTo's save-on-dirty nor a Save while it is in flight writes the
+	// deleted model back. If the request fails, the edits are still dropped:
+	// the user chose to discard this model.
+	if (store.model.id === id) store.dirty = false;
 	await apiDeleteModel(id);
 	store.savedList = store.savedList.filter((s) => s.id !== id);
 	if (store.savedList.length > 0) {

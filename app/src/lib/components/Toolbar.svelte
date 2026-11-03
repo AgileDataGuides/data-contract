@@ -7,9 +7,11 @@
 		updateDescription
 	} from '$lib/stores/contract.svelte';
 	import { contextPlaneToContract } from '$lib/converters/context-plane';
+	import ExportMenu, { offerExport, type ExportMenuGroup } from '$lib/components/canvas/ExportMenu.svelte';
+	import { stepsTabLabel } from '$lib/canon/steps';
 
 	let {
-		activeTab = $bindable('agreement'),
+		activeTab = $bindable('steps'),
 		onExportJson,
 		onImportJson,
 		onExportOdcs,
@@ -31,6 +33,7 @@
 	} = $props();
 
 	const tabs = [
+		{ id: 'steps', label: stepsTabLabel() },
 		{ id: 'agreement', label: 'Agreement' },
 		{ id: 'contract', label: 'Canvas' },
 		{ id: 'dictionary', label: 'Table' },
@@ -137,6 +140,26 @@
 		};
 		input.click();
 	}
+
+	/** Every export, grouped, behind one Export button (DESIGN_SYSTEM.md § Export Menu). */
+	const exportGroups: ExportMenuGroup[] = $derived([
+		{ heading: 'Model', items: [{ label: 'JSON', description: 'The whole contract, to share or import again', onSelect: handleExportJSON }] },
+		{
+			heading: 'Document',
+			items: [
+				...offerExport(onExportRtf, 'RTF', 'Opens in Word, Pages or TextEdit'),
+				...offerExport(onExportWord, 'Word', 'A .doc file for Word'),
+				...offerExport(onExportPdf, 'PDF', 'Opens the print dialog. Choose Save as PDF')
+			]
+		},
+		{
+			heading: 'Standards',
+			items: [
+				...offerExport(onExportOdcs, 'ODCS', 'Open Data Contract Standard YAML (.odcs.yaml)'),
+				...offerExport(onExportOpenMetadata, 'OMS', 'OpenMetadata JSON-LD (.jsonld)')
+			]
+		}
+	]);
 </script>
 
 <!-- Tier 2: Toolbar — Name/Desc + Save + Exports (§ SA Standalone Toolbar, § Tier 2) -->
@@ -163,24 +186,9 @@
 			</button>
 		</div>
 
-		<!-- Right: Export + Import (§ Canvas Action Buttons — Export/Import) -->
+		<!-- Right: one Export menu (§ Export Menu) -->
 		<div class="flex items-center gap-2 shrink-0">
-			<button onclick={handleExportJSON} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 transition-colors">Export JSON</button>
-			{#if onExportOdcs}
-				<button onclick={() => onExportOdcs?.()} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors">Export ODCS</button>
-			{/if}
-			{#if onExportOpenMetadata}
-				<button onclick={() => onExportOpenMetadata?.()} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors">Export OMS</button>
-			{/if}
-			{#if onExportRtf}
-				<button onclick={() => onExportRtf?.()} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors" title="Export as RTF (opens in Word / Pages / TextEdit)">Export RTF</button>
-			{/if}
-			{#if onExportWord}
-				<button onclick={() => onExportWord?.()} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors" title="Export as Word document (.doc)">Export Word</button>
-			{/if}
-			{#if onExportPdf}
-				<button onclick={() => onExportPdf?.()} class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white text-teal-600 border border-teal-300 hover:bg-teal-50 transition-colors" title="Export as PDF (opens browser print dialog — pick Save as PDF)">Export PDF</button>
-			{/if}
+			<ExportMenu groups={exportGroups} />
 			<!-- Import button moved to the app header (next to New Contract) — see +page.svelte.
 			     That location better communicates that Import creates a NEW contract rather
 			     than mutating the current one. -->
